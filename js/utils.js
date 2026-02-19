@@ -99,6 +99,52 @@ const Utils = {
     },
 
     /**
+     * Sort an HTML table by clicking a header
+     * @param {string} tableId
+     * @param {number} colIdx
+     * @param {'text'|'number'|'currency'|'date'} type
+     */
+    sortHTMLTable(tableId, colIdx, type = 'text') {
+        const table = document.getElementById(tableId);
+        if (!table) return;
+        const tbody = table.querySelector('tbody');
+        const rows = Array.from(tbody.querySelectorAll('tr'));
+        const th = table.querySelectorAll('th')[colIdx];
+        const isAsc = th.dataset.order === 'asc';
+        const multiplier = isAsc ? -1 : 1; // Toggle order
+
+        // Update sort icons
+        table.querySelectorAll('th i').forEach(i => i.remove());
+        table.querySelectorAll('th').forEach(h => h.dataset.order = '');
+        th.dataset.order = isAsc ? 'desc' : 'asc';
+        const icon = document.createElement('i');
+        icon.className = isAsc ? 'bi bi-sort-down ms-1' : 'bi bi-sort-up ms-1';
+        th.appendChild(icon);
+
+        rows.sort((rowA, rowB) => {
+            const cellA = rowA.children[colIdx].textContent.trim();
+            const cellB = rowB.children[colIdx].textContent.trim();
+            let a = cellA, b = cellB;
+
+            if (type === 'number') {
+                a = parseFloat(cellA.replace(/[^0-9.-]+/g, '')) || 0;
+                b = parseFloat(cellB.replace(/[^0-9.-]+/g, '')) || 0;
+            } else if (type === 'currency') {
+                a = parseFloat(cellA.replace(/[^0-9.-]+/g, '')) || 0;
+                b = parseFloat(cellB.replace(/[^0-9.-]+/g, '')) || 0;
+            } else if (type === 'date') {
+                a = new Date(cellA).getTime() || 0;
+                b = new Date(cellB).getTime() || 0;
+            } else {
+                return a.localeCompare(b) * multiplier;
+            }
+            return (a - b) * multiplier;
+        });
+
+        rows.forEach(row => tbody.appendChild(row));
+    },
+
+    /**
      * Status badge HTML
      */
     statusBadge(status) {

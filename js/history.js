@@ -74,6 +74,7 @@ const History = {
           </td>
           <td class="text-end gel-value">${Utils.formatGEL(o.totalPrice || 0)}</td>
           <td class="text-center actions-cell">
+            <button class="btn btn-sm btn-outline-dark me-1" onclick="History.exportPDF('${o.id}')" title="Download Invoice"><i class="bi bi-file-earmark-pdf"></i></button>
             <button class="btn btn-sm btn-outline-primary me-1" onclick="Orders.loadOrder('${o.id}')" title="Edit"><i class="bi bi-pencil"></i></button>
             <button class="btn btn-sm btn-outline-info me-1" onclick="History.viewDetails('${o.id}')" title="View details"><i class="bi bi-eye"></i></button>
             <button class="btn btn-sm btn-outline-danger" onclick="History.remove('${o.id}')" title="Delete"><i class="bi bi-trash"></i></button>
@@ -129,6 +130,69 @@ const History = {
         details += `\nProfit: ${Utils.formatGEL(order.profit || 0)}`;
 
         alert(details);
+    },
+
+    /** Generate and download PDF invoice */
+    async exportPDF(id) {
+        const order = await DB.get('orders', id);
+        if (!order) return;
+        const client = await DB.get('clients', order.clientId);
+        const printerMap = {};
+        (await DB.getAll('printers')).forEach(p => printerMap[p.id] = p.name);
+        const materialMap = {};
+        (await DB.getAll('materials')).forEach(m => materialMap[m.id] = m.type);
+
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+
+        // Header
+        doc.setFontSize(22);
+        doc.text("3D Print Service Invoice", 14, 20);
+
+        doc.setFontSize(10);
+        doc.text(`Invoice #: ${order.id.slice(0, 8).toUpperCase()}`, 14, 30);
+        doc.text(`Date: ${Utils.formatDate(order.date)}`, 14, 35);
+        doc.text(`Status: ${order.status}`, 14, 40);
+
+        // Client Info
+        if (client) {
+            doc.text("Bill To:", 140, 30);
+            doc.setFontSize(12);
+            doc.text(client.name, 140, 36);
+            doc.setFontSize(10);
+            if (client.email) doc.text(client.email, 140, 42);
+            if (client.phone) doc.text(client.phone, 140, 47);
+        }
+
+        // Table
+        const tableBody = (order.models || []).map((m, i) => [
+            i + 1,
+            m.name || 'Unnamed Model',
+            `${printerMap[m.printerId] || '-'} / ${materialMap[m.materialId] || '-'}`,
+            `${m.weightG}g / ${m.estTimeHrs}h`,
+            Utils.formatGEL(m.subtotal)
+        ]);
+
+        doc.autoTable({
+            startY: 55,
+            head: [['#', 'Item', 'Details', 'Specs', 'Cost']],
+            body: tableBody,
+            theme: 'striped',
+            headStyles: { fillColor: [66, 66, 66] }
+        });
+
+        // Totals
+        const finalY = doc.lastAutoTable.finalY + 10;
+        doc.text(`Subtotal: ${Utils.formatGEL(order.totalCost)}`, 140, finalY);
+        doc.text(`Margin (${order.marginPct}%): +${Utils.formatGEL(order.totalCost * (order.marginPct / 100))}`, 140, finalY + 5);
+        doc.text(`Tax (${order.taxPct}%): +${Utils.formatGEL(order.totalPrice - (order.totalPrice / (1 + order.taxPct / 100)))}`, 140, finalY + 10);
+
+        doc.setFontSize(14);
+        doc.setFont(undefined, 'bold');
+        doc.text(`Total: ${Utils.formatGEL(order.totalPrice)}`, 140, finalY + 20);
+
+        doc.save(`Invoice_${order.id.slice(0, 8)}.pdf`);
+        Utils.showToast('PDF downloaded');
     },
 
     /** Delete an order */
