@@ -49,7 +49,7 @@ const App = {
 
             // Step 7: Pre-render ALL sections so tables are populated immediately
             console.log('[App] Step 7: Pre-rendering all sections...');
-            const sections = ['printers', 'materials', 'overheads', 'clients', 'statistics', 'history', 'settings'];
+            const sections = ['printers', 'materials', 'overheads', 'clients', 'history', 'settings'];
             for (const s of sections) {
                 try {
                     console.log(`[App]   Rendering ${s}...`);
