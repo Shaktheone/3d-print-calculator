@@ -1,0 +1,503 @@
+/**
+ * app.css — Theme & layout for 3D Print Cost Calculator
+ * Dark/Light mode via Bootstrap 5.3 data-bs-theme + custom properties
+ */
+
+/* ========== CSS Custom Properties ========== */
+:root {
+  --sidebar-width: 260px;
+  --sidebar-bg: linear-gradient(180deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+  --sidebar-text: #c8c8d0;
+  --sidebar-active-bg: rgba(255, 255, 255, 0.12);
+  --sidebar-hover-bg: rgba(255, 255, 255, 0.07);
+  --accent: #7c3aed;
+  --accent-hover: #6d28d9;
+  --accent-light: #a78bfa;
+  --gel-color: #10b981;
+  --card-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  --card-border-radius: 14px;
+  --transition-speed: 0.25s;
+}
+
+[data-bs-theme="dark"] {
+  --card-shadow: 0 2px 16px rgba(0, 0, 0, 0.35);
+  --gel-color: #34d399;
+}
+
+/* ========== Global ========== */
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  min-height: 100vh;
+  transition: background-color var(--transition-speed);
+}
+
+/* ========== Sidebar ========== */
+.sidebar {
+  background: var(--sidebar-bg);
+  color: var(--sidebar-text);
+  width: var(--sidebar-width);
+  transition: transform var(--transition-speed);
+}
+
+.sidebar .offcanvas-body {
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 1.5rem 1.25rem 1.25rem;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.5px;
+}
+
+.sidebar-brand i {
+  font-size: 1.75rem;
+  color: var(--accent-light);
+}
+
+.sidebar-nav {
+  flex: 1;
+  padding: 0.5rem 0.75rem;
+}
+
+.sidebar-nav .nav-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0.65rem 1rem;
+  margin-bottom: 2px;
+  color: var(--sidebar-text);
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.2s;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.sidebar-nav .nav-link:hover {
+  background: var(--sidebar-hover-bg);
+  color: #fff;
+}
+
+.sidebar-nav .nav-link.active {
+  background: var(--sidebar-active-bg);
+  color: #fff;
+  font-weight: 600;
+}
+
+.sidebar-nav .nav-link i {
+  font-size: 1.15rem;
+  width: 24px;
+  text-align: center;
+}
+
+.sidebar-footer {
+  padding: 1rem 1.25rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* ========== Dark-mode toggle button ========== */
+.dark-mode-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 0.6rem 1rem;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  color: var(--sidebar-text);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.dark-mode-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+
+/* ========== Main Content ========== */
+.main-content {
+  transition: margin-left var(--transition-speed);
+  min-height: 100vh;
+}
+
+@media (min-width: 992px) {
+  .sidebar {
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    z-index: 1040;
+    transform: none !important;
+    visibility: visible !important;
+  }
+
+  .main-content {
+    margin-left: var(--sidebar-width);
+  }
+}
+
+/* ========== Mobile top bar ========== */
+.mobile-topbar {
+  background: var(--sidebar-bg);
+  padding: 0.5rem 1rem;
+}
+
+.mobile-topbar .btn {
+  color: #fff;
+  border: none;
+}
+
+.mobile-topbar .brand-text {
+  color: #fff;
+  font-weight: 700;
+  font-size: 1.1rem;
+  letter-spacing: 0.5px;
+}
+
+/* ========== Stat Cards ========== */
+.stat-card {
+  border: none;
+  border-radius: var(--card-border-radius);
+  box-shadow: var(--card-shadow);
+  transition: transform 0.2s, box-shadow 0.2s;
+  overflow: hidden;
+}
+
+.stat-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.14);
+}
+
+.stat-card .card-body {
+  padding: 1.25rem;
+}
+
+.stat-card .stat-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  color: #fff;
+}
+
+.stat-card .stat-value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin: 6px 0 2px;
+}
+
+.stat-card .stat-label {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  opacity: 0.65;
+  font-weight: 600;
+}
+
+/* ========== Card Accents ========== */
+.accent-purple .stat-icon {
+  background: linear-gradient(135deg, #7c3aed, #a78bfa);
+}
+
+.accent-green .stat-icon {
+  background: linear-gradient(135deg, #059669, #34d399);
+}
+
+.accent-blue .stat-icon {
+  background: linear-gradient(135deg, #2563eb, #60a5fa);
+}
+
+.accent-orange .stat-icon {
+  background: linear-gradient(135deg, #d97706, #fbbf24);
+}
+
+.accent-pink .stat-icon {
+  background: linear-gradient(135deg, #db2777, #f472b6);
+}
+
+/* ========== Section containers ========== */
+.app-section {
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 1.5rem;
+}
+
+.section-header h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.section-header h2 i {
+  color: var(--accent);
+}
+
+/* ========== Tables ========== */
+.table {
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.table thead th {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  font-weight: 700;
+  border-bottom-width: 2px;
+}
+
+.table .actions-cell {
+  white-space: nowrap;
+}
+
+.table .gel-value {
+  color: var(--gel-color);
+  font-weight: 600;
+}
+
+/* ========== Buttons ========== */
+.btn-accent {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-weight: 600;
+  padding: 0.5rem 1.25rem;
+  transition: all 0.2s;
+}
+
+.btn-accent:hover {
+  background: var(--accent-hover);
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+/* ========== Modals ========== */
+.modal-content {
+  border: none;
+  border-radius: 16px;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.2);
+}
+
+.modal-header {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  padding: 1.25rem 1.5rem;
+}
+
+.modal-body {
+  padding: 1.5rem;
+}
+
+.modal-footer {
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  padding: 1rem 1.5rem;
+}
+
+/* ========== Cost Breakdown Panel ========== */
+.breakdown-panel {
+  border-radius: var(--card-border-radius);
+  box-shadow: var(--card-shadow);
+  position: sticky;
+  top: 1rem;
+}
+
+.breakdown-panel .breakdown-header {
+  padding: 1rem 1.25rem;
+  border-radius: var(--card-border-radius) var(--card-border-radius) 0 0;
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.breakdown-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.4rem 0;
+  font-size: 0.9rem;
+}
+
+.breakdown-line .label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.breakdown-line .value {
+  font-weight: 600;
+  color: var(--gel-color);
+}
+
+.breakdown-divider {
+  border-top: 1px dashed rgba(128, 128, 128, 0.3);
+  margin: 0.5rem 0;
+}
+
+.breakdown-total {
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.breakdown-total .value {
+  font-size: 1.3rem;
+}
+
+/* ========== Extras / Model rows ========== */
+.model-row {
+  border: 1px solid rgba(128, 128, 128, 0.15);
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 0.75rem;
+  transition: box-shadow 0.2s;
+}
+
+.model-row:hover {
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+.model-row .model-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.model-row .model-number {
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: var(--accent);
+}
+
+/* ========== Charts ========== */
+.chart-card {
+  border: none;
+  border-radius: var(--card-border-radius);
+  box-shadow: var(--card-shadow);
+  padding: 1.25rem;
+}
+
+/* ========== Toast ========== */
+#toast-container {
+  z-index: 9999;
+}
+
+/* ========== Tooltip override for formula tips ========== */
+.formula-tip {
+  cursor: help;
+  border-bottom: 1px dotted rgba(128, 128, 128, 0.5);
+}
+
+/* ========== Empty state ========== */
+.empty-state {
+  text-align: center;
+  padding: 3rem 1rem;
+  opacity: 0.6;
+}
+
+.empty-state i {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  display: block;
+}
+
+/* ========== Responsive ========== */
+@media (max-width: 767.98px) {
+  .section-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .stat-card .stat-value {
+    font-size: 1.35rem;
+  }
+
+  .breakdown-panel {
+    position: static;
+    margin-top: 1rem;
+  }
+}
+
+/* ========== Scrollbar (for dark mode) ========== */
+[data-bs-theme="dark"] ::-webkit-scrollbar {
+  width: 8px;
+}
+
+[data-bs-theme="dark"] ::-webkit-scrollbar-track {
+  background: #1e1e2e;
+}
+
+[data-bs-theme="dark"] ::-webkit-scrollbar-thumb {
+  background: #444;
+  border-radius: 4px;
+}
+
+/* ========== Print styles ========== */
+@media print {
+
+  .sidebar,
+  .mobile-topbar,
+  .dark-mode-btn,
+  .btn,
+  .toast {
+    display: none !important;
+  }
+
+  .main-content {
+    margin-left: 0 !important;
+  }
+}
+
+/* ========== Fix dropdown clipping inside tables ========== */
+/* Bootstrap .table-responsive sets overflow-x:auto which clips dropdowns */
+.table-responsive {
+  overflow: visible !important;
+}
+
+/* .stat-card overflow:hidden clips dropdown menus that extend beyond the card */
+.stat-card:has(.dropdown) {
+  overflow: visible;
+}
+
+/* .table overflow:hidden also clips dropdown menus */
+.table:has(.dropdown) {
+  overflow: visible;
+}
+
+/* Ensure dropdown menus render above everything */
+.dropdown-menu {
+  z-index: 1055;
+}

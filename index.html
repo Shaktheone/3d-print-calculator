@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>3D Print Cost Calculator — GEL ₾</title>
+  <meta name="description"
+    content="Offline-first 3D printing cost calculator for Georgia. All prices in Georgian Lari (₾ GEL).">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link href="css/app.css" rel="stylesheet">
+</head>
+
+<body>
+
+  <!-- ====== Mobile Top Bar ====== -->
+  <nav class="mobile-topbar d-lg-none d-flex align-items-center justify-content-between sticky-top">
+    <button class="btn" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarNav" aria-label="Menu">
+      <i class="bi bi-list fs-4"></i>
+    </button>
+    <span class="brand-text"><i class="bi bi-printer me-1"></i> 3D PrintCalc</span>
+    <button class="btn" id="dark-mode-mobile" aria-label="Toggle dark mode">
+      <i class="bi bi-moon-fill"></i>
+    </button>
+  </nav>
+
+  <!-- ====== Sidebar ====== -->
+  <div class="offcanvas-lg offcanvas-start sidebar" id="sidebarNav" tabindex="-1">
+    <div class="offcanvas-header d-lg-none">
+      <h5 class="offcanvas-title text-white">Menu</h5>
+      <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"
+        data-bs-target="#sidebarNav"></button>
+    </div>
+    <div class="offcanvas-body d-flex flex-column">
+      <!-- Brand -->
+      <div class="sidebar-brand">
+        <i class="bi bi-printer-fill"></i>
+        <span>3D PrintCalc</span>
+      </div>
+      <!-- Navigation -->
+      <nav class="sidebar-nav nav flex-column flex-grow-1">
+        <a class="nav-link active" data-section="dashboard"><i class="bi bi-speedometer2"></i> Dashboard</a>
+        <a class="nav-link" data-section="printers"><i class="bi bi-printer"></i> Printers</a>
+        <a class="nav-link" data-section="materials"><i class="bi bi-box-seam"></i> Materials</a>
+        <a class="nav-link" data-section="overheads"><i class="bi bi-cash-stack"></i> Overheads</a>
+        <a class="nav-link" data-section="clients"><i class="bi bi-people"></i> Clients</a>
+        <a class="nav-link" data-section="orders"><i class="bi bi-cart3"></i> Orders</a>
+        <a class="nav-link" data-section="statistics"><i class="bi bi-graph-up"></i> Statistics</a>
+        <a class="nav-link" data-section="history"><i class="bi bi-clock-history"></i> History</a>
+        <a class="nav-link" data-section="settings"><i class="bi bi-gear"></i> Settings</a>
+      </nav>
+      <!-- Dark mode toggle -->
+      <div class="sidebar-footer">
+        <button class="dark-mode-btn" id="dark-mode-toggle">
+          <i class="bi bi-moon-fill" id="dark-mode-icon"></i>
+          <span id="dark-mode-label">Dark Mode</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== Main Content ====== -->
+  <main class="main-content">
+    <div class="container-fluid py-4 px-lg-4">
+
+      <!-- ===== DASHBOARD ===== -->
+      <div id="section-dashboard" class="app-section">
+        <div class="section-header">
+          <h2><i class="bi bi-speedometer2"></i> Dashboard</h2>
+        </div>
+        <div class="row g-3 mb-4">
+          <div class="col-6 col-lg-3">
+            <div class="card stat-card accent-purple">
+              <div class="card-body">
+                <div class="d-flex align-items-center justify-content-between">
+                  <div>
+                    <div class="stat-label">Total Orders</div>
+                    <div class="stat-value" id="dash-orders">0</div>
+                  </div>
+                  <div class="stat-icon"><i class="bi bi-cart3"></i></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-6 col-lg-3">
+            <div class="card stat-card accent-green">
+              <div class="card-body">
+                <div class="d-flex align-items-center justify-content-between">
+                  <div>
+                    <div class="stat-label">Revenue ₾</div>
+                    <div class="stat-value" id="dash-revenue">0 ₾</div>
+                  </div>
+                  <div class="stat-icon"><i class="bi bi-currency-exchange"></i></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-6 col-lg-3">
+            <div class="card stat-card accent-blue">
+              <div class="card-body">
+                <div class="d-flex align-items-center justify-content-between">
+                  <div>
+                    <div class="stat-label">Printers</div>
+                    <div class="stat-value" id="dash-printers">0</div>
+                  </div>
+                  <div class="stat-icon"><i class="bi bi-printer"></i></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-6 col-lg-3">
+            <div class="card stat-card accent-orange">
+              <div class="card-body">
+                <div class="d-flex align-items-center justify-content-between">
+                  <div>
+                    <div class="stat-label">Materials</div>
+                    <div class="stat-value" id="dash-materials">0</div>
+                  </div>
+                  <div class="stat-icon"><i class="bi bi-box-seam"></i></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Recent Orders -->
+        <div class="card stat-card">
+          <div class="card-body">
+            <h6 class="fw-bold mb-3"><i class="bi bi-clock-history me-2"></i>Recent Orders</h6>
+            <div class="table-responsive">
+              <table class="table table-sm table-hover mb-0">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Client</th>
+                    <th>Status</th>
+                    <th class="text-end">Total ₾</th>
+                  </tr>
+                </thead>
+                <tbody id="dash-recent-orders"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== PRINTERS ===== -->
+      <div id="section-printers" class="app-section d-none">
+        <div class="section-header">
+          <h2><i class="bi bi-printer"></i> Printers</h2>
+          <button class="btn btn-accent" onclick="Printers.openModal()"><i class="bi bi-plus-lg me-1"></i>Add
+            Printer</button>
+        </div>
+        <div class="card stat-card">
+          <div class="card-body p-0">
+            <div class="table-responsive">
+              <table class="table table-hover mb-0" id="printers-table">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th class="text-end">Hourly Cost ₾</th>
+                    <th class="text-end">Power W</th>
+                    <th class="text-end">Maintenance ₾/hr</th>
+                    <th class="text-end">Speed g/h</th>
+                    <th>Profile</th>
+                    <th class="text-center">Actions</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== MATERIALS ===== -->
+      <div id="section-materials" class="app-section d-none">
+        <div class="section-header">
+          <h2><i class="bi bi-box-seam"></i> Materials</h2>
+          <button class="btn btn-accent" onclick="Materials.openModal()"><i class="bi bi-plus-lg me-1"></i>Add
+            Material</button>
+        </div>
+        <div class="card stat-card">
+          <div class="card-body p-0">
+            <div class="table-responsive">
+              <table class="table table-hover mb-0" id="materials-table">
+                <thead>
+                  <tr>
+                    <th>Type</th>
+                    <th class="text-end">Price ₾/kg</th>
+                    <th class="text-end">Density g/cm³</th>
+                    <th class="text-end">Stock kg</th>
+                    <th>Color</th>
+                    <th class="text-center">Actions</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== OVERHEADS ===== -->
+      <div id="section-overheads" class="app-section d-none">
+        <div class="section-header">
+          <h2><i class="bi bi-cash-stack"></i> Overheads & Expenses</h2>
+          <div class="d-flex gap-2">
+            <button class="btn btn-accent" onclick="Overheads.openModal()"><i class="bi bi-plus-lg me-1"></i>Add
+              Overhead</button>
+            <button class="btn btn-outline-primary" onclick="Overheads.openModal(null, 'expense')"><i
+                class="bi bi-plus-lg me-1"></i>Add Expense</button>
+          </div>
+        </div>
+        <!-- Electricity rate -->
+        <div class="card stat-card mb-3">
+          <div class="card-body">
+            <div class="row align-items-end">
+              <div class="col-md-4">
+                <label class="form-label fw-bold"><i class="bi bi-lightning-fill text-warning me-1"></i>Electricity Rate
+                  ₾/kWh</label>
+                <div class="input-group">
+                  <input type="number" class="form-control" id="electricity-rate" step="0.01" min="0" value="0.18">
+                  <span class="input-group-text">₾/kWh</span>
+                </div>
+                <small class="text-muted">Georgian residential rate: 0.169–0.20 ₾/kWh</small>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label fw-bold">Working Hours / Month</label>
+                <input type="number" class="form-control" id="working-hours" value="160" min="1">
+                <small class="text-muted">Used to allocate monthly overheads to orders.</small>
+              </div>
+              <div class="col-md-4 mt-2 mt-md-0">
+                <button class="btn btn-accent" onclick="Overheads.saveGlobals()"><i class="bi bi-check-lg me-1"></i>Save
+                  Rates</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Overheads table -->
+        <div class="card stat-card mb-3">
+          <div class="card-body pb-0">
+            <h6 class="fw-bold"><i class="bi bi-arrow-repeat me-2 text-info"></i>Monthly Overheads</h6>
+          </div>
+          <div class="card-body p-0">
+            <div class="table-responsive">
+              <table class="table table-hover mb-0" id="overheads-table">
+                <thead>
+                  <tr>
+                    <th>Label</th>
+                    <th class="text-end">Amount ₾/month</th>
+                    <th>Scope</th>
+                    <th class="text-center">Actions</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <!-- Expenses table -->
+        <div class="card stat-card">
+          <div class="card-body pb-0">
+            <h6 class="fw-bold"><i class="bi bi-receipt me-2 text-warning"></i>Expenses</h6>
+          </div>
+          <div class="card-body p-0">
+            <div class="table-responsive">
+              <table class="table table-hover mb-0" id="expenses-table">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Label</th>
+                    <th>Category</th>
+                    <th class="text-end">Amount ₾</th>
+                    <th>Notes</th>
+                    <th class="text-center">Actions</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <!-- Expenses total -->
+        <div class="card stat-card mt-3">
+          <div class="card-body d-flex justify-content-between align-items-center">
+            <span class="fw-bold">Total Expenses (all time)</span>
+            <span class="fw-bold gel-value fs-5" id="expenses-total">0.00 ₾</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== CLIENTS ===== -->
+      <div id="section-clients" class="app-section d-none">
+        <div class="section-header">
+          <h2><i class="bi bi-people"></i> Clients</h2>
+          <button class="btn btn-accent" onclick="Clients.openModal()"><i class="bi bi-plus-lg me-1"></i>Add
+            Client</button>
+        </div>
+        <div class="card stat-card">
+          <div class="card-body p-0">
+            <div class="table-responsive">
+              <table class="table table-hover mb-0" id="clients-table">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th>Notes</th>
+                    <th class="text-center">Actions</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== ORDERS ===== -->
+      <div id="section-orders" class="app-section d-none">
+        <div class="section-header">
+          <h2><i class="bi bi-cart3"></i> New Order</h2>
+        </div>
+        <div class="row g-4">
+          <!-- Left: Order Form -->
+          <div class="col-lg-7">
+            <div class="card stat-card">
+              <div class="card-body">
+                <h6 class="fw-bold mb-3">Order Details</h6>
+                <div class="row g-3 mb-3">
+                  <div class="col-md-6">
+                    <label class="form-label">Client</label>
+                    <select class="form-select" id="order-client"></select>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label">Deadline</label>
+                    <input type="date" class="form-control" id="order-deadline">
+                  </div>
+                  <div class="col-md-3">
+                    <label class="form-label">Margin %</label>
+                    <input type="number" class="form-control" id="order-margin" value="25" min="0" step="1">
+                  </div>
+                  <div class="col-md-3">
+                    <label class="form-label">Tax %</label>
+                    <input type="number" class="form-control" id="order-tax" value="18" min="0" step="1">
+                  </div>
+                  <div class="col-md-3">
+                    <label class="form-label">Discount %</label>
+                    <input type="number" class="form-control" id="order-discount" value="0" min="0" step="1">
+                  </div>
+                  <div class="col-md-3">
+                    <label class="form-label">Logistics ₾</label>
+                    <input type="number" class="form-control" id="order-logistics" value="0" min="0" step="0.5">
+                  </div>
+                </div>
+                <!-- Model rows container -->
+                <h6 class="fw-bold mb-2">Models</h6>
+                <div id="order-models"></div>
+                <button class="btn btn-outline-primary btn-sm mt-2" onclick="Orders.addModelRow()"><i
+                    class="bi bi-plus-lg me-1"></i>Add Model</button>
+                <hr>
+                <input type="hidden" id="order-edit-id" value="">
+                <div class="d-flex gap-2">
+                  <button class="btn btn-accent" onclick="Orders.saveOrder()"><i class="bi bi-check-lg me-1"></i>Save
+                    Order</button>
+                  <button class="btn btn-outline-secondary" onclick="Orders.resetForm()">Clear</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Right: Live Breakdown -->
+          <div class="col-lg-5">
+            <div class="card breakdown-panel">
+              <div class="breakdown-header bg-primary text-white">
+                <i class="bi bi-calculator me-2"></i>Cost Breakdown ₾
+              </div>
+              <div class="card-body" id="order-breakdown">
+                <div class="empty-state"><i class="bi bi-calculator"></i>
+                  <p>Add a model to see breakdown</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== STATISTICS ===== -->
+      <div id="section-statistics" class="app-section d-none">
+        <div class="section-header">
+          <h2><i class="bi bi-graph-up"></i> Statistics</h2>
+        </div>
+        <div class="row g-4">
+          <div class="col-lg-6">
+            <div class="chart-card card">
+              <h6 class="fw-bold mb-3"><i class="bi bi-bar-chart me-2"></i>Costs by Material ₾</h6>
+              <canvas id="chart-materials" height="260"></canvas>
+            </div>
+          </div>
+          <div class="col-lg-6">
+            <div class="chart-card card">
+              <h6 class="fw-bold mb-3"><i class="bi bi-graph-up-arrow me-2"></i>Revenue Over Time ₾</h6>
+              <canvas id="chart-revenue" height="260"></canvas>
+            </div>
+          </div>
+          <div class="col-lg-6">
+            <div class="chart-card card">
+              <h6 class="fw-bold mb-3"><i class="bi bi-pie-chart me-2"></i>Top Printers by Usage</h6>
+              <canvas id="chart-printers" height="260"></canvas>
+            </div>
+          </div>
+          <div class="col-lg-6">
+            <div class="chart-card card">
+              <h6 class="fw-bold mb-3"><i class="bi bi-people me-2"></i>Top Clients by Revenue ₾</h6>
+              <canvas id="chart-clients" height="260"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== HISTORY ===== -->
+      <div id="section-history" class="app-section d-none">
+        <div class="section-header">
+          <h2><i class="bi bi-clock-history"></i> Order History</h2>
+        </div>
+        <div class="card stat-card mb-3">
+          <div class="card-body">
+            <div class="row g-2 align-items-end">
+              <div class="col-md-4">
+                <label class="form-label">Search</label>
+                <input type="text" class="form-control" id="history-search" placeholder="Client, model name...">
+              </div>
+              <div class="col-md-3">
+                <label class="form-label">Status</label>
+                <select class="form-select" id="history-status">
+                  <option value="">All</option>
+                  <option value="pending">Pending</option>
+                  <option value="in-progress">In Progress</option>
+                  <option value="completed">Completed</option>
+                  <option value="cancelled">Cancelled</option>
+                </select>
+              </div>
+              <div class="col-md-3">
+                <button class="btn btn-accent" onclick="History.render()"><i
+                    class="bi bi-search me-1"></i>Filter</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card stat-card">
+          <div class="card-body p-0">
+            <div class="table-responsive">
+              <table class="table table-hover mb-0" id="history-table">
+                <thead>
+                  <tr>
+                    <th>Order #</th>
+                    <th>Date</th>
+                    <th>Client</th>
+                    <th>Models</th>
+                    <th>Status</th>
+                    <th class="text-end">Total ₾</th>
+                    <th class="text-center">Actions</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== SETTINGS ===== -->
+      <div id="section-settings" class="app-section d-none">
+        <div class="section-header">
+          <h2><i class="bi bi-gear"></i> Settings</h2>
+        </div>
+        <div class="row g-4">
+          <div class="col-lg-6">
+            <div class="card stat-card">
+              <div class="card-body">
+                <h6 class="fw-bold mb-3"><i class="bi bi-sliders me-2"></i>Defaults (₾)</h6>
+                <div class="mb-3">
+                  <label class="form-label">Default Margin %</label>
+                  <input type="number" class="form-control" id="set-margin" value="25" min="0">
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">Default Tax %</label>
+                  <input type="number" class="form-control" id="set-tax" value="18" min="0">
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">Electricity ₾/kWh</label>
+                  <input type="number" class="form-control" id="set-electricity" value="0.18" step="0.01" min="0">
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">Working Hours / Month</label>
+                  <input type="number" class="form-control" id="set-hours" value="160" min="1">
+                </div>
+                <button class="btn btn-accent" onclick="Settings.saveDefaults()"><i class="bi bi-check-lg me-1"></i>Save
+                  Defaults</button>
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-6">
+            <div class="card stat-card">
+              <div class="card-body">
+                <h6 class="fw-bold mb-3"><i class="bi bi-cloud-arrow-up me-2"></i>Data Management</h6>
+                <div class="d-flex flex-column gap-2">
+                  <button class="btn btn-outline-primary" onclick="Settings.exportJSON()"><i
+                      class="bi bi-download me-2"></i>Export All Data (JSON)</button>
+                  <button class="btn btn-outline-primary" onclick="Settings.triggerImport()"><i
+                      class="bi bi-upload me-2"></i>Import Data (JSON)</button>
+                  <input type="file" id="import-file" accept=".json" class="d-none"
+                    onchange="Settings.importJSON(event)">
+                  <button class="btn btn-outline-success" onclick="Settings.exportCSV()"><i
+                      class="bi bi-filetype-csv me-2"></i>Export Orders (CSV)</button>
+                  <hr>
+                  <button class="btn btn-outline-danger" onclick="Settings.resetData()"><i
+                      class="bi bi-trash me-2"></i>Reset All Data</button>
+                </div>
+              </div>
+            </div>
+            <!-- Supabase placeholder -->
+            <div class="card stat-card mt-3">
+              <div class="card-body">
+                <h6 class="fw-bold mb-3"><i class="bi bi-cloud me-2"></i>Cloud Sync (Coming Soon)</h6>
+                <p class="text-muted mb-2">Supabase integration placeholder — connect to cloud backup in a future
+                  update.</p>
+                <div class="mb-3">
+                  <label class="form-label">Supabase URL</label>
+                  <input type="text" class="form-control" disabled placeholder="https://your-project.supabase.co">
+                </div>
+                <div class="mb-3">
+                  <label class="form-label">Anon Key</label>
+                  <input type="text" class="form-control" disabled placeholder="your-anon-key">
+                </div>
+                <button class="btn btn-secondary" disabled><i class="bi bi-link-45deg me-1"></i>Connect</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- container-fluid -->
+  </main>
+
+  <!-- ====== MODALS ====== -->
+
+  <!-- Printer Modal -->
+  <div class="modal fade" id="printerModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="printerModalTitle">Add Printer</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" id="printer-id">
+          <div class="mb-3"><label class="form-label">Printer Name</label><input type="text" class="form-control"
+              id="printer-name" required></div>
+          <div class="mb-3"><label class="form-label">Hourly Cost ₾</label><input type="number" class="form-control"
+              id="printer-hourly" value="15" min="0" step="0.5"></div>
+          <div class="mb-3"><label class="form-label">Power Consumption (W)</label><input type="number"
+              class="form-control" id="printer-power" value="350" min="0"></div>
+          <div class="mb-3"><label class="form-label">Maintenance ₾/hr</label><input type="number" class="form-control"
+              id="printer-maintenance" value="0.50" min="0" step="0.1"></div>
+          <div class="mb-3"><label class="form-label">Print Speed (g/h)</label><input type="number" class="form-control"
+              id="printer-speed" value="30" min="0" step="1"></div>
+          <div class="mb-3"><label class="form-label">Profile</label><input type="text" class="form-control"
+              id="printer-profile" value="FDM Standard"></div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-accent" onclick="Printers.save()">Save Printer</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Material Modal -->
+  <div class="modal fade" id="materialModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="materialModalTitle">Add Material</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" id="material-id">
+          <div class="mb-3"><label class="form-label">Material Type</label>
+            <input type="text" class="form-control" id="material-type" list="material-type-list"
+              placeholder="e.g. PETG-HF, PLA, ABS..." value="PLA">
+            <datalist id="material-type-list">
+              <option value="PLA">
+              <option value="PLA+">
+              <option value="ABS">
+              <option value="PETG">
+              <option value="PETG-HF">
+              <option value="TPU">
+              <option value="Nylon">
+              <option value="ASA">
+              <option value="PC">
+              <option value="Resin">
+              <option value="PVA">
+              <option value="HIPS">
+              <option value="Carbon Fiber">
+            </datalist>
+          </div>
+          <div class="mb-3"><label class="form-label">Price ₾/kg</label><input type="number" class="form-control"
+              id="material-price" value="55" min="0" step="1"></div>
+          <div class="mb-3"><label class="form-label">Density (g/cm³)</label><input type="number" class="form-control"
+              id="material-density" value="1.24" min="0" step="0.01"></div>
+          <div class="mb-3"><label class="form-label">Stock (kg)</label><input type="number" class="form-control"
+              id="material-stock" value="1.0" min="0" step="0.1"></div>
+          <div class="mb-3"><label class="form-label">Color</label><input type="text" class="form-control"
+              id="material-color" value="White"></div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-accent" onclick="Materials.save()">Save Material</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Overhead / Expense Modal -->
+  <div class="modal fade" id="overheadModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="overheadModalTitle">Add Overhead</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" id="overhead-id">
+          <input type="hidden" id="overhead-entry-type" value="overhead">
+          <div class="mb-3"><label class="form-label">Type</label>
+            <select class="form-select" id="overhead-type" onchange="Overheads.toggleFormType(this.value)">
+              <option value="overhead">Monthly Overhead</option>
+              <option value="expense">One-time Expense</option>
+            </select>
+          </div>
+          <div class="mb-3"><label class="form-label">Label</label><input type="text" class="form-control"
+              id="overhead-label" required placeholder="e.g. Workspace Rent, Nozzle Purchase..."></div>
+          <div class="mb-3" id="overhead-category-group"><label class="form-label">Category</label>
+            <input type="text" class="form-control" id="overhead-category" list="expense-category-list"
+              placeholder="e.g. Equipment, Tools, Consumables...">
+            <datalist id="expense-category-list">
+              <option value="Rent">
+              <option value="Utilities">
+              <option value="Internet">
+              <option value="Equipment">
+              <option value="Tools">
+              <option value="Consumables">
+              <option value="Maintenance">
+              <option value="Filament">
+              <option value="Software">
+              <option value="Marketing">
+              <option value="Transport">
+              <option value="Other">
+            </datalist>
+          </div>
+          <div class="mb-3" id="overhead-amount-group">
+            <label class="form-label" id="overhead-amount-label">Amount ₾/month</label>
+            <input type="number" class="form-control" id="overhead-amount" value="0" min="0" step="1">
+          </div>
+          <div class="mb-3 d-none" id="overhead-date-group"><label class="form-label">Date</label>
+            <input type="date" class="form-control" id="overhead-date">
+          </div>
+          <div class="mb-3" id="overhead-scope-group"><label class="form-label">Scope</label>
+            <select class="form-select" id="overhead-scope">
+              <option value="global">Global</option>
+            </select>
+          </div>
+          <div class="mb-3"><label class="form-label">Notes</label>
+            <input type="text" class="form-control" id="overhead-notes" placeholder="Optional notes">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-accent" onclick="Overheads.save()">Save</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Client Modal -->
+  <div class="modal fade" id="clientModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="clientModalTitle">Add Client</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" id="client-id">
+          <div class="mb-3"><label class="form-label">Name</label><input type="text" class="form-control"
+              id="client-name" required></div>
+          <div class="mb-3"><label class="form-label">Email</label><input type="email" class="form-control"
+              id="client-email"></div>
+          <div class="mb-3"><label class="form-label">Phone</label><input type="tel" class="form-control"
+              id="client-phone"></div>
+          <div class="mb-3"><label class="form-label">Notes</label><textarea class="form-control" id="client-notes"
+              rows="2"></textarea></div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-accent" onclick="Clients.save()">Save Client</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confirm Delete Modal -->
+  <div class="modal fade" id="confirmModal" tabindex="-1">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-body text-center py-4">
+          <i class="bi bi-exclamation-triangle-fill text-warning fs-1 mb-3 d-block"></i>
+          <p class="mb-0" id="confirm-message">Are you sure?</p>
+        </div>
+        <div class="modal-footer justify-content-center">
+          <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-danger btn-sm" id="confirm-btn">Delete</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== TOAST CONTAINER ====== -->
+  <div id="toast-container" class="toast-container position-fixed bottom-0 end-0 p-3"></div>
+
+  <!-- ====== SCRIPTS ====== -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/db.js"></script>
+  <script src="js/printers.js"></script>
+  <script src="js/materials.js"></script>
+  <script src="js/overheads.js"></script>
+  <script src="js/clients.js"></script>
+  <script src="js/orders.js"></script>
+  <script src="js/statistics.js"></script>
+  <script src="js/history.js"></script>
+  <script src="js/settings.js"></script>
+  <script src="js/app.js"></script>
+</body>
+
+</html>
