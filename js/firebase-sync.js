@@ -105,6 +105,9 @@ const FirebaseSync = {
             // Download cloud data if newer
             await this.downloadIfNewer();
 
+            // Update UI again after sync (picks up lastSync timestamp)
+            this.updateStatusUI();
+
         } catch (e) {
             console.error('[FirebaseSync] Connection failed:', e);
             this.app = null;
