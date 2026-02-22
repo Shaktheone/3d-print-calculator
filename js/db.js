@@ -58,7 +58,10 @@ const DB = {
     put(store, data) {
         return new Promise((resolve, reject) => {
             const req = this._tx(store, 'readwrite').put(data);
-            req.onsuccess = () => resolve(req.result);
+            req.onsuccess = () => {
+                resolve(req.result);
+                if (typeof FirebaseSync !== 'undefined') FirebaseSync.scheduleUpload();
+            };
             req.onerror = () => reject(req.error);
         });
     },
@@ -67,7 +70,10 @@ const DB = {
     del(store, id) {
         return new Promise((resolve, reject) => {
             const req = this._tx(store, 'readwrite').delete(id);
-            req.onsuccess = () => resolve();
+            req.onsuccess = () => {
+                resolve();
+                if (typeof FirebaseSync !== 'undefined') FirebaseSync.scheduleUpload();
+            };
             req.onerror = () => reject(req.error);
         });
     },
@@ -90,6 +96,7 @@ const DB = {
                 req.onerror = () => reject(req.error);
             });
         }
+        if (typeof FirebaseSync !== 'undefined') FirebaseSync.scheduleUpload();
     },
 
     /** Export all data as JSON object */

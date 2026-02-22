@@ -24,6 +24,16 @@ const App = {
                 console.log('[App] Step 2: ✅ Data already exists, skip seed');
             }
 
+            // Step 2.5: Initialize Firebase Cloud Sync
+            console.log('[App] Step 2.5: Initializing Firebase Sync...');
+            try {
+                await FirebaseSync.init();
+                FirebaseSync.populateFormFromSaved();
+                console.log('[App] Step 2.5: ✅ Firebase Sync initialized');
+            } catch (fbErr) {
+                console.warn('[App] Step 2.5: Firebase Sync init failed (non-critical):', fbErr);
+            }
+
             // Step 3: Restore dark mode
             console.log('[App] Step 3: Loading settings...');
             const settings = await DB.getSettings();

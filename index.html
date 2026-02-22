@@ -10,6 +10,9 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
   <link href="css/app.css" rel="stylesheet">
+  <!-- Firebase SDK (compat mode for CDN usage) -->
+  <script src="https://www.gstatic.com/firebasejs/11.4.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore-compat.js"></script>
 </head>
 
 <body>
@@ -529,21 +532,70 @@
                 </div>
               </div>
             </div>
-            <!-- Supabase placeholder -->
+            <!-- Firebase Cloud Sync -->
             <div class="card stat-card mt-3">
               <div class="card-body">
-                <h6 class="fw-bold mb-3"><i class="bi bi-cloud me-2"></i>Cloud Sync (Coming Soon)</h6>
-                <p class="text-muted mb-2">Supabase integration placeholder — connect to cloud backup in a future
-                  update.</p>
-                <div class="mb-3">
-                  <label class="form-label">Supabase URL</label>
-                  <input type="text" class="form-control" disabled placeholder="https://your-project.supabase.co">
+                <h6 class="fw-bold mb-3">
+                  <i class="bi bi-cloud-arrow-up-fill me-2"></i>Cloud Sync (Firebase)
+                  <span id="firebase-status-badge" class="badge bg-secondary ms-2">Not connected</span>
+                </h6>
+                <p class="text-muted mb-2" style="font-size:0.85rem">
+                  Connect your Firebase project for automatic cloud sync across devices.
+                  <a href="https://console.firebase.google.com/" target="_blank" class="text-decoration-none">Get config
+                    →</a>
+                </p>
+                <div id="firebase-config-inputs">
+                  <div class="row g-2 mb-2">
+                    <div class="col-md-6">
+                      <label class="form-label form-label-sm">API Key</label>
+                      <input type="text" class="form-control form-control-sm" id="fb-apiKey" placeholder="AIza...">
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label form-label-sm">Auth Domain</label>
+                      <input type="text" class="form-control form-control-sm" id="fb-authDomain"
+                        placeholder="your-app.firebaseapp.com">
+                    </div>
+                  </div>
+                  <div class="row g-2 mb-2">
+                    <div class="col-md-6">
+                      <label class="form-label form-label-sm">Project ID</label>
+                      <input type="text" class="form-control form-control-sm" id="fb-projectId"
+                        placeholder="your-project-id">
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label form-label-sm">Storage Bucket</label>
+                      <input type="text" class="form-control form-control-sm" id="fb-storageBucket"
+                        placeholder="your-app.appspot.com">
+                    </div>
+                  </div>
+                  <div class="row g-2 mb-3">
+                    <div class="col-md-6">
+                      <label class="form-label form-label-sm">Messaging Sender ID</label>
+                      <input type="text" class="form-control form-control-sm" id="fb-messagingSenderId"
+                        placeholder="123456789">
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label form-label-sm">App ID</label>
+                      <input type="text" class="form-control form-control-sm" id="fb-appId" placeholder="1:123:web:abc">
+                    </div>
+                  </div>
                 </div>
-                <div class="mb-3">
-                  <label class="form-label">Anon Key</label>
-                  <input type="text" class="form-control" disabled placeholder="your-anon-key">
+                <button class="btn btn-accent btn-sm" id="firebase-connect-btn" onclick="FirebaseSync.handleConnect()">
+                  <i class="bi bi-link-45deg me-1"></i>Connect Firebase
+                </button>
+                <div id="firebase-connected-controls" class="d-none mt-3">
+                  <div class="d-flex flex-wrap gap-2">
+                    <button class="btn btn-outline-primary btn-sm" onclick="FirebaseSync.handleForceUpload()">
+                      <i class="bi bi-cloud-upload me-1"></i>Force Upload
+                    </button>
+                    <button class="btn btn-outline-primary btn-sm" onclick="FirebaseSync.handleForceDownload()">
+                      <i class="bi bi-cloud-download me-1"></i>Force Download
+                    </button>
+                    <button class="btn btn-outline-danger btn-sm" onclick="FirebaseSync.disconnect()">
+                      <i class="bi bi-x-circle me-1"></i>Disconnect
+                    </button>
+                  </div>
                 </div>
-                <button class="btn btn-secondary" disabled><i class="bi bi-link-45deg me-1"></i>Connect</button>
               </div>
             </div>
           </div>
@@ -740,12 +792,15 @@
   <div id="toast-container" class="toast-container position-fixed bottom-0 end-0 p-3"></div>
 
   <!-- ====== SCRIPTS ====== -->
+  <!-- Core Libraries -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+  <!-- App Modules -->
   <script src="js/utils.js"></script>
   <script src="js/db.js"></script>
+  <script src="js/firebase-sync.js"></script>
   <script src="js/printers.js"></script>
   <script src="js/materials.js"></script>
   <script src="js/overheads.js"></script>
