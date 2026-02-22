@@ -134,30 +134,46 @@ const History = {
 
     /** Load Georgian-compatible font into jsPDF (cached) */
     _fontLoaded: false,
+    _fontName: 'helvetica',
     async _loadGeorgianFont(doc) {
-        if (this._fontLoaded) return;
-        try {
-            const url = 'https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/notosansgeorgian/NotoSansGeorgian%5Bwght%5D.ttf';
-            const resp = await fetch(url);
-            if (!resp.ok) throw new Error('Font fetch failed');
-            const buf = await resp.arrayBuffer();
-            const bytes = new Uint8Array(buf);
-            let binary = '';
-            for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
-            const base64 = btoa(binary);
-            doc.addFileToVFS('NotoSansGeorgian.ttf', base64);
-            doc.addFont('NotoSansGeorgian.ttf', 'NotoSansGeorgian', 'normal');
-            this._fontLoaded = true;
-        } catch (e) {
-            console.warn('[PDF] Georgian font load failed, using fallback:', e.message);
+        if (this._fontLoaded) {
+            this._fontName = 'NotoSansGeorgian';
+            return;
         }
+        // Try multiple font URLs (static weight, not variable)
+        const urls = [
+            'https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/notosansgeorgian/static/NotoSansGeorgian-Regular.ttf',
+            'https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/notosansgeorgian/NotoSansGeorgian%5Bwght%5D.ttf',
+            'https://raw.githubusercontent.com/google/fonts/main/ofl/notosansgeorgian/static/NotoSansGeorgian-Regular.ttf'
+        ];
+        for (const url of urls) {
+            try {
+                const resp = await fetch(url);
+                if (!resp.ok) continue;
+                const buf = await resp.arrayBuffer();
+                const bytes = new Uint8Array(buf);
+                let binary = '';
+                for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+                const base64 = btoa(binary);
+                doc.addFileToVFS('NotoSansGeorgian.ttf', base64);
+                doc.addFont('NotoSansGeorgian.ttf', 'NotoSansGeorgian', 'normal');
+                this._fontLoaded = true;
+                this._fontName = 'NotoSansGeorgian';
+                console.log('[PDF] Georgian font loaded from:', url);
+                return;
+            } catch (e) {
+                console.warn('[PDF] Font URL failed:', url, e.message);
+            }
+        }
+        console.warn('[PDF] All Georgian font URLs failed, using helvetica');
+        this._fontName = 'helvetica';
     },
 
     /** Set font with Georgian fallback */
     _setFont(doc, style = 'normal', size = 10) {
         doc.setFontSize(size);
         try {
-            doc.setFont('NotoSansGeorgian', style);
+            doc.setFont(this._fontName, style);
         } catch (_) {
             doc.setFont('helvetica', style);
         }
@@ -237,8 +253,8 @@ const History = {
             head: [['#', 'Item', 'Material', 'Weight', 'Time', 'Price']],
             body: tableBody,
             theme: 'striped',
-            headStyles: { fillColor: [70, 130, 180], textColor: 255, fontStyle: 'bold' },
-            styles: { fontSize: 10, cellPadding: 4 },
+            headStyles: { fillColor: [70, 130, 180], textColor: 255, fontStyle: 'bold', font: this._fontName },
+            styles: { fontSize: 10, cellPadding: 4, font: this._fontName },
             columnStyles: { 5: { halign: 'right' } }
         });
 
