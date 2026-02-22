@@ -140,17 +140,17 @@ const History = {
             this._fontName = 'NotoSansGeorgian';
             return;
         }
-        // Try multiple font URLs (static weight, not variable)
+        // Try local file first, then CDN fallbacks
         const urls = [
-            'https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/notosansgeorgian/static/NotoSansGeorgian-Regular.ttf',
-            'https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/notosansgeorgian/NotoSansGeorgian%5Bwght%5D.ttf',
-            'https://raw.githubusercontent.com/google/fonts/main/ofl/notosansgeorgian/static/NotoSansGeorgian-Regular.ttf'
+            'fonts/NotoSansGeorgian-Regular.ttf',
+            'https://raw.githubusercontent.com/notofonts/noto-fonts/master/unhinted/ttf/NotoSansGeorgian/NotoSansGeorgian-Regular.ttf'
         ];
         for (const url of urls) {
             try {
                 const resp = await fetch(url);
                 if (!resp.ok) continue;
                 const buf = await resp.arrayBuffer();
+                if (buf.byteLength < 1000) continue; // too small, not a real font
                 const bytes = new Uint8Array(buf);
                 let binary = '';
                 for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
@@ -159,13 +159,13 @@ const History = {
                 doc.addFont('NotoSansGeorgian.ttf', 'NotoSansGeorgian', 'normal');
                 this._fontLoaded = true;
                 this._fontName = 'NotoSansGeorgian';
-                console.log('[PDF] Georgian font loaded from:', url);
+                console.log('[PDF] ✅ Georgian font loaded from:', url);
                 return;
             } catch (e) {
                 console.warn('[PDF] Font URL failed:', url, e.message);
             }
         }
-        console.warn('[PDF] All Georgian font URLs failed, using helvetica');
+        console.warn('[PDF] Georgian font not available, using helvetica');
         this._fontName = 'helvetica';
     },
 
