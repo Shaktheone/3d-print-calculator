@@ -410,32 +410,59 @@
 
       <!-- ===== STATISTICS ===== -->
       <div id="section-statistics" class="app-section d-none">
-        <div class="section-header">
-          <h2><i class="bi bi-graph-up"></i> Statistics</h2>
+
+        <div class="section-header d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+          <h2><i class="bi bi-graph-up"></i> Financial Dashboard</h2>
+          <div class="d-flex gap-2 align-items-center">
+            <select class="form-select bg-dark text-white border-secondary" id="stat-date-filter"
+              style="width: auto; min-width: 140px;" onchange="Statistics.applyFilter()">
+              <option value="30">Last 30 Days</option>
+              <option value="month">This Month</option>
+              <option value="all" selected>All Time</option>
+            </select>
+            <button class="btn btn-outline-light d-flex align-items-center gap-2" onclick="window.print()"
+              title="Print / Save PDF">
+              <i class="bi bi-printer"></i> <span class="d-none d-sm-inline">Export</span>
+            </button>
+          </div>
         </div>
-        <div class="row g-4">
-          <div class="col-lg-6">
+
+        <!-- Business Context Alerts -->
+        <div id="stat-alerts-container" class="mb-3"></div>
+
+        <!-- KPIs Grid -->
+        <div class="row g-3 mb-4" id="stat-kpi-container">
+          <!-- Populated by JS -->
+        </div>
+
+        <!-- Charts Grid -->
+        <div class="row g-4 mb-5">
+          <div class="col-lg-12">
             <div class="chart-card card">
-              <h6 class="fw-bold mb-3"><i class="bi bi-bar-chart me-2"></i>Costs by Material ₾</h6>
-              <canvas id="chart-materials" height="260"></canvas>
+              <h6 class="fw-bold mb-3" style="color: #059669"><i class="bi bi-graph-up-arrow me-2"></i>Revenue vs Cost
+                Over Time ₾</h6>
+              <canvas id="chart-revenue" height="280"></canvas>
             </div>
           </div>
           <div class="col-lg-6">
             <div class="chart-card card">
-              <h6 class="fw-bold mb-3"><i class="bi bi-graph-up-arrow me-2"></i>Revenue Over Time ₾</h6>
-              <canvas id="chart-revenue" height="260"></canvas>
+              <h6 class="fw-bold mb-3" style="color: #7c3aed"><i class="bi bi-bar-chart me-2"></i>Costs & Volume by
+                Material</h6>
+              <canvas id="chart-materials" height="300"></canvas>
             </div>
           </div>
           <div class="col-lg-6">
             <div class="chart-card card">
-              <h6 class="fw-bold mb-3"><i class="bi bi-pie-chart me-2"></i>Top Printers by Usage</h6>
-              <canvas id="chart-printers" height="260"></canvas>
+              <h6 class="fw-bold mb-3" style="color: #2563eb"><i class="bi bi-gear-fill me-2"></i>Top Printers
+                (Utilization)</h6>
+              <canvas id="chart-printers" height="300"></canvas>
             </div>
           </div>
-          <div class="col-lg-6">
+          <div class="col-lg-12">
             <div class="chart-card card">
-              <h6 class="fw-bold mb-3"><i class="bi bi-people me-2"></i>Top Clients by Revenue ₾</h6>
-              <canvas id="chart-clients" height="260"></canvas>
+              <h6 class="fw-bold mb-3" style="color: #0891b2"><i class="bi bi-people me-2"></i>Client Revenue
+                Concentration ₾</h6>
+              <canvas id="chart-clients" height="300"></canvas>
             </div>
           </div>
         </div>
