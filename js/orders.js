@@ -9,7 +9,7 @@ const Orders = {
   /** Initialize order form: populate dropdowns, set defaults, add first model row */
   async init() {
     const settings = await DB.getSettings();
-    Utils.setVal('order-margin', settings.defaultMargin || 25);
+    Utils.setVal('order-margin', settings.defaultMargin || 100);
     Utils.setVal('order-tax', settings.defaultTax || 18);
     Utils.setVal('order-discount', 0);
     Utils.setVal('order-logistics', 0);
@@ -328,7 +328,7 @@ const Orders = {
   async resetForm() {
     Utils.setVal('order-edit-id', '');
     const settings = await DB.getSettings();
-    Utils.setVal('order-margin', settings.defaultMargin || 25);
+    Utils.setVal('order-margin', settings.defaultMargin || 100);
     Utils.setVal('order-tax', settings.defaultTax || 18);
     Utils.setVal('order-discount', 0);
     Utils.setVal('order-logistics', 0);

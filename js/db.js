@@ -157,7 +157,7 @@ const DB = {
             settings = {
                 id: 'app',
                 electricityPerKwh: 0.18,
-                defaultMargin: 25,
+                defaultMargin: 100,
                 defaultTax: 18,
                 darkMode: false,
                 workingHoursPerMonth: 160
@@ -220,7 +220,7 @@ const DB = {
         await this.put('settings', {
             id: 'app',
             electricityPerKwh: 0.18,
-            defaultMargin: 25,
+            defaultMargin: 100,
             defaultTax: 18,
             darkMode: false,
             workingHoursPerMonth: 160
@@ -233,7 +233,7 @@ const DB = {
             date: new Date().toISOString(),
             deadline: '',
             status: 'completed',
-            marginPct: 25,
+            marginPct: 100,
             taxPct: 18,
             discountPct: 0,
             logisticsCost: 0,

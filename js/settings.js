@@ -6,7 +6,7 @@ const Settings = {
     /** Load current settings into the form */
     async render() {
         const s = await DB.getSettings();
-        Utils.setVal('set-margin', s.defaultMargin || 25);
+        Utils.setVal('set-margin', s.defaultMargin || 100);
         Utils.setVal('set-tax', s.defaultTax || 18);
         Utils.setVal('set-electricity', s.electricityPerKwh || 0.18);
         Utils.setVal('set-hours', s.workingHoursPerMonth || 160);
