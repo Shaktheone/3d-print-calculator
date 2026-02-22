@@ -182,7 +182,7 @@ const History = {
         // === Company Header ===
         this._setFont(doc, 'normal', 20);
         doc.setTextColor(50, 50, 50);
-        doc.text("3D Print Service", 14, 20);
+        doc.text("3dprintshop", 14, 20);
         this._setFont(doc, 'normal', 10);
         doc.setTextColor(120, 120, 120);
         doc.text("Batumi, Georgia", 14, 27);
@@ -257,7 +257,7 @@ const History = {
         this._setFont(doc, 'normal', 8);
         doc.setTextColor(160, 160, 160);
         doc.text('Thank you for your business!', 14, pageH - 15);
-        doc.text('3D Print Service — Batumi, Georgia', 14, pageH - 10);
+        doc.text('3dprintshop — Batumi, Georgia', 14, pageH - 10);
 
         // Save
         const d = new Date();
