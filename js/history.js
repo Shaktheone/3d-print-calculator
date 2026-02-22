@@ -134,13 +134,16 @@ const History = {
 
     /** Load Georgian-compatible font into jsPDF (cached) */
     _fontLoaded: false,
-    _fontName: 'helvetica',
+    _georgianAvailable: false,
     async _loadGeorgianFont(doc) {
         if (this._fontLoaded) {
-            this._fontName = 'NotoSansGeorgian';
+            // Re-register for new doc instance
+            if (this._cachedBase64) {
+                doc.addFileToVFS('NotoSansGeorgian.ttf', this._cachedBase64);
+                doc.addFont('NotoSansGeorgian.ttf', 'NotoSansGeorgian', 'normal');
+            }
             return;
         }
-        // Try local file first, then CDN fallbacks
         const urls = [
             'fonts/NotoSansGeorgian-Regular.ttf',
             'https://raw.githubusercontent.com/notofonts/noto-fonts/master/unhinted/ttf/NotoSansGeorgian/NotoSansGeorgian-Regular.ttf'
@@ -150,33 +153,41 @@ const History = {
                 const resp = await fetch(url);
                 if (!resp.ok) continue;
                 const buf = await resp.arrayBuffer();
-                if (buf.byteLength < 1000) continue; // too small, not a real font
+                if (buf.byteLength < 1000) continue;
                 const bytes = new Uint8Array(buf);
                 let binary = '';
                 for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
                 const base64 = btoa(binary);
+                this._cachedBase64 = base64;
                 doc.addFileToVFS('NotoSansGeorgian.ttf', base64);
                 doc.addFont('NotoSansGeorgian.ttf', 'NotoSansGeorgian', 'normal');
                 this._fontLoaded = true;
-                this._fontName = 'NotoSansGeorgian';
+                this._georgianAvailable = true;
                 console.log('[PDF] ✅ Georgian font loaded from:', url);
                 return;
             } catch (e) {
                 console.warn('[PDF] Font URL failed:', url, e.message);
             }
         }
-        console.warn('[PDF] Georgian font not available, using helvetica');
-        this._fontName = 'helvetica';
+        console.warn('[PDF] Georgian font not available');
     },
 
-    /** Set font with Georgian fallback */
-    _setFont(doc, style = 'normal', size = 10) {
+    /** Check if text contains Georgian characters (U+10A0–U+10FF, U+2D00–U+2D2F) */
+    _hasGeorgian(text) {
+        return /[\u10A0-\u10FF\u1C90-\u1CBF\u2D00-\u2D2F]/.test(text);
+    },
+
+    /** Smart text: uses Georgian font for Georgian text, helvetica for everything else */
+    _smartText(doc, text, x, y, opts = {}) {
+        const size = opts.size || 10;
+        const style = opts.style || 'normal';
         doc.setFontSize(size);
-        try {
-            doc.setFont(this._fontName, style);
-        } catch (_) {
+        if (this._georgianAvailable && this._hasGeorgian(String(text))) {
+            doc.setFont('NotoSansGeorgian', style);
+        } else {
             doc.setFont('helvetica', style);
         }
+        doc.text(String(text), x, y);
     },
 
     /** Generate and download client-facing PDF invoice */
@@ -192,53 +203,47 @@ const History = {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
 
-        // Load Georgian font
+        // Load Georgian font (registered alongside helvetica)
         await this._loadGeorgianFont(doc);
+        const self = this;
 
         // === Company Header ===
-        this._setFont(doc, 'normal', 20);
         doc.setTextColor(50, 50, 50);
-        doc.text("3dprintshop", 14, 20);
-        this._setFont(doc, 'normal', 10);
+        this._smartText(doc, "3dprintshop", 14, 20, { size: 20 });
         doc.setTextColor(120, 120, 120);
-        doc.text("Zugdidi, Georgia", 14, 27);
-        doc.text("+995 558 05 60 20", 14, 32);
+        this._smartText(doc, "Zugdidi, Georgia", 14, 27, { size: 10 });
+        this._smartText(doc, "+995 558 05 60 20", 14, 32, { size: 10 });
 
         // === INVOICE label ===
-        this._setFont(doc, 'normal', 24);
         doc.setTextColor(70, 130, 180);
-        doc.text("INVOICE", 150, 20);
+        this._smartText(doc, "INVOICE", 150, 20, { size: 24 });
 
         // === Invoice details ===
-        this._setFont(doc, 'normal', 10);
         doc.setTextColor(80, 80, 80);
-        doc.text(`Invoice #: ${order.id.slice(0, 8).toUpperCase()}`, 14, 42);
+        this._smartText(doc, `Invoice #: ${order.id.slice(0, 8).toUpperCase()}`, 14, 42, { size: 10 });
 
         const todayFormatted = new Date().toLocaleDateString('en-GB', { timeZone: 'Asia/Tbilisi', day: '2-digit', month: 'short', year: 'numeric' });
-        doc.text(`Date: ${todayFormatted}`, 14, 48);
+        this._smartText(doc, `Date: ${todayFormatted}`, 14, 48, { size: 10 });
 
         // === Bill To (Client Info) ===
-        this._setFont(doc, 'normal', 9);
         doc.setTextColor(120, 120, 120);
-        doc.text("Bill To:", 140, 35);
-        this._setFont(doc, 'normal', 12);
+        this._smartText(doc, "Bill To:", 140, 35, { size: 9 });
         doc.setTextColor(30, 30, 30);
         if (client) {
-            doc.text(client.name || '', 140, 42);
-            this._setFont(doc, 'normal', 9);
+            this._smartText(doc, client.name || '', 140, 42, { size: 12 });
             doc.setTextColor(80, 80, 80);
             let yOff = 48;
-            if (client.email) { doc.text(client.email, 140, yOff); yOff += 5; }
-            if (client.phone) { doc.text(client.phone, 140, yOff); yOff += 5; }
+            if (client.email) { this._smartText(doc, client.email, 140, yOff, { size: 9 }); yOff += 5; }
+            if (client.phone) { this._smartText(doc, client.phone, 140, yOff, { size: 9 }); yOff += 5; }
         } else {
-            doc.text('Walk-in Customer', 140, 42);
+            this._smartText(doc, 'Walk-in Customer', 140, 42, { size: 12 });
         }
 
         // === Separator line ===
         doc.setDrawColor(200, 200, 200);
         doc.line(14, 55, 196, 55);
 
-        // === Items Table (client-facing: no internal costs) ===
+        // === Items Table ===
         const tableBody = (order.models || []).map((m, i) => [
             i + 1,
             m.name || `Model ${i + 1}`,
@@ -253,27 +258,34 @@ const History = {
             head: [['#', 'Item', 'Material', 'Weight', 'Time', 'Price']],
             body: tableBody,
             theme: 'striped',
-            headStyles: { fillColor: [70, 130, 180], textColor: 255, fontStyle: 'bold', font: this._fontName },
-            styles: { fontSize: 10, cellPadding: 4, font: this._fontName },
-            columnStyles: { 5: { halign: 'right' } }
+            headStyles: { fillColor: [70, 130, 180], textColor: 255, fontStyle: 'bold', font: 'helvetica' },
+            styles: { fontSize: 10, cellPadding: 4, font: 'helvetica' },
+            columnStyles: { 5: { halign: 'right' } },
+            // Per-cell font: Georgian for cells with Georgian text, helvetica otherwise
+            didParseCell: function (data) {
+                if (data.section === 'body' && self._georgianAvailable) {
+                    const val = String(data.cell.raw || '');
+                    if (self._hasGeorgian(val)) {
+                        data.cell.styles.font = 'NotoSansGeorgian';
+                    }
+                }
+            }
         });
 
-        // === Total (client-facing: only the final price, no internals) ===
+        // === Total ===
         const finalY = doc.lastAutoTable.finalY + 15;
 
         doc.setDrawColor(200, 200, 200);
         doc.line(120, finalY - 5, 196, finalY - 5);
 
-        this._setFont(doc, 'normal', 16);
         doc.setTextColor(30, 30, 30);
-        doc.text(`Total: ${order.totalPrice.toFixed(2)} GEL`, 140, finalY + 5);
+        this._smartText(doc, `Total: ${order.totalPrice.toFixed(2)} GEL`, 140, finalY + 5, { size: 16 });
 
         // === Footer ===
         const pageH = doc.internal.pageSize.getHeight();
-        this._setFont(doc, 'normal', 8);
         doc.setTextColor(160, 160, 160);
-        doc.text('Thank you for your business!', 14, pageH - 15);
-        doc.text('3dprintshop — Zugdidi, Georgia | +995 558 05 60 20', 14, pageH - 10);
+        this._smartText(doc, 'Thank you for your business!', 14, pageH - 15, { size: 8 });
+        this._smartText(doc, '3dprintshop - Zugdidi, Georgia | +995 558 05 60 20', 14, pageH - 10, { size: 8 });
 
         // Save
         const d = new Date();
