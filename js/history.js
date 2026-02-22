@@ -185,7 +185,8 @@ const History = {
         doc.text("3dprintshop", 14, 20);
         this._setFont(doc, 'normal', 10);
         doc.setTextColor(120, 120, 120);
-        doc.text("Batumi, Georgia", 14, 27);
+        doc.text("Zugdidi, Georgia", 14, 27);
+        doc.text("+995 558 05 60 20", 14, 32);
 
         // === INVOICE label ===
         this._setFont(doc, 'normal', 24);
@@ -195,11 +196,11 @@ const History = {
         // === Invoice details ===
         this._setFont(doc, 'normal', 10);
         doc.setTextColor(80, 80, 80);
-        doc.text(`Invoice #: ${order.id.slice(0, 8).toUpperCase()}`, 14, 38);
+        doc.text(`Invoice #: ${order.id.slice(0, 8).toUpperCase()}`, 14, 42);
 
         const orderDate = order.date ? new Date(order.date) : new Date();
         const dateFormatted = orderDate.toLocaleDateString('en-GB', { timeZone: 'Asia/Tbilisi', day: '2-digit', month: 'short', year: 'numeric' });
-        doc.text(`Date: ${dateFormatted}`, 14, 44);
+        doc.text(`Date: ${dateFormatted}`, 14, 48);
 
         // === Bill To (Client Info) ===
         this._setFont(doc, 'normal', 9);
@@ -229,7 +230,7 @@ const History = {
             `${materialMap[m.materialId] || '-'}`,
             `${m.weightG || 0}g`,
             `${m.estTimeHrs || 0}h`,
-            `${Utils.formatGEL(order.totalPrice / (order.models || []).length)}`
+            `${(order.totalPrice / (order.models || []).length).toFixed(2)} GEL`
         ]);
 
         doc.autoTable({
@@ -250,14 +251,14 @@ const History = {
 
         this._setFont(doc, 'normal', 16);
         doc.setTextColor(30, 30, 30);
-        doc.text(`Total: ${Utils.formatGEL(order.totalPrice)}`, 140, finalY + 5);
+        doc.text(`Total: ${order.totalPrice.toFixed(2)} GEL`, 140, finalY + 5);
 
         // === Footer ===
         const pageH = doc.internal.pageSize.getHeight();
         this._setFont(doc, 'normal', 8);
         doc.setTextColor(160, 160, 160);
         doc.text('Thank you for your business!', 14, pageH - 15);
-        doc.text('3dprintshop — Batumi, Georgia', 14, pageH - 10);
+        doc.text('3dprintshop — Zugdidi, Georgia | +995 558 05 60 20', 14, pageH - 10);
 
         // Save
         const d = new Date();
