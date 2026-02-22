@@ -13,6 +13,8 @@
   <!-- Firebase SDK (compat mode for CDN usage) -->
   <script src="https://www.gstatic.com/firebasejs/11.4.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore-compat.js"></script>
+  <!-- SheetJS for advanced Excel exports -->
+  <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
 </head>
 
 <body>
@@ -524,8 +526,8 @@
                       class="bi bi-upload me-2"></i>Import Data (JSON)</button>
                   <input type="file" id="import-file" accept=".json" class="d-none"
                     onchange="Settings.importJSON(event)">
-                  <button class="btn btn-outline-success" onclick="Settings.exportCSV()"><i
-                      class="bi bi-filetype-csv me-2"></i>Export Orders (CSV)</button>
+                  <button class="btn btn-outline-success" onclick="Settings.exportXLSX()"><i
+                      class="bi bi-file-earmark-spreadsheet me-2"></i>Export Financials (XLSX)</button>
                   <hr>
                   <button class="btn btn-outline-danger" onclick="Settings.resetData()"><i
                       class="bi bi-trash me-2"></i>Reset All Data</button>
