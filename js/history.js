@@ -198,9 +198,8 @@ const History = {
         doc.setTextColor(80, 80, 80);
         doc.text(`Invoice #: ${order.id.slice(0, 8).toUpperCase()}`, 14, 42);
 
-        const orderDate = order.date ? new Date(order.date) : new Date();
-        const dateFormatted = orderDate.toLocaleDateString('en-GB', { timeZone: 'Asia/Tbilisi', day: '2-digit', month: 'short', year: 'numeric' });
-        doc.text(`Date: ${dateFormatted}`, 14, 48);
+        const todayFormatted = new Date().toLocaleDateString('en-GB', { timeZone: 'Asia/Tbilisi', day: '2-digit', month: 'short', year: 'numeric' });
+        doc.text(`Date: ${todayFormatted}`, 14, 48);
 
         // === Bill To (Client Info) ===
         this._setFont(doc, 'normal', 9);
