@@ -132,7 +132,38 @@ const History = {
         alert(details);
     },
 
-    /** Generate and download PDF invoice */
+    /** Load Georgian-compatible font into jsPDF (cached) */
+    _fontLoaded: false,
+    async _loadGeorgianFont(doc) {
+        if (this._fontLoaded) return;
+        try {
+            const url = 'https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/notosansgeorgian/NotoSansGeorgian%5Bwght%5D.ttf';
+            const resp = await fetch(url);
+            if (!resp.ok) throw new Error('Font fetch failed');
+            const buf = await resp.arrayBuffer();
+            const bytes = new Uint8Array(buf);
+            let binary = '';
+            for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+            const base64 = btoa(binary);
+            doc.addFileToVFS('NotoSansGeorgian.ttf', base64);
+            doc.addFont('NotoSansGeorgian.ttf', 'NotoSansGeorgian', 'normal');
+            this._fontLoaded = true;
+        } catch (e) {
+            console.warn('[PDF] Georgian font load failed, using fallback:', e.message);
+        }
+    },
+
+    /** Set font with Georgian fallback */
+    _setFont(doc, style = 'normal', size = 10) {
+        doc.setFontSize(size);
+        try {
+            doc.setFont('NotoSansGeorgian', style);
+        } catch (_) {
+            doc.setFont('helvetica', style);
+        }
+    },
+
+    /** Generate and download client-facing PDF invoice */
     async exportPDF(id) {
         const order = await DB.get('orders', id);
         if (!order) return;
@@ -145,58 +176,96 @@ const History = {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
 
-        // Header
-        doc.setFontSize(22);
-        doc.text("3D Print Service Invoice", 14, 20);
+        // Load Georgian font
+        await this._loadGeorgianFont(doc);
 
-        doc.setFontSize(10);
-        doc.text(`Invoice #: ${order.id.slice(0, 8).toUpperCase()}`, 14, 30);
-        doc.text(`Date: ${Utils.formatDate(order.date)}`, 14, 35);
-        doc.text(`Status: ${order.status}`, 14, 40);
+        // === Company Header ===
+        this._setFont(doc, 'normal', 20);
+        doc.setTextColor(50, 50, 50);
+        doc.text("3D Print Service", 14, 20);
+        this._setFont(doc, 'normal', 10);
+        doc.setTextColor(120, 120, 120);
+        doc.text("Batumi, Georgia", 14, 27);
 
-        // Client Info
+        // === INVOICE label ===
+        this._setFont(doc, 'normal', 24);
+        doc.setTextColor(70, 130, 180);
+        doc.text("INVOICE", 150, 20);
+
+        // === Invoice details ===
+        this._setFont(doc, 'normal', 10);
+        doc.setTextColor(80, 80, 80);
+        doc.text(`Invoice #: ${order.id.slice(0, 8).toUpperCase()}`, 14, 38);
+
+        const orderDate = order.date ? new Date(order.date) : new Date();
+        const dateFormatted = orderDate.toLocaleDateString('en-GB', { timeZone: 'Asia/Tbilisi', day: '2-digit', month: 'short', year: 'numeric' });
+        doc.text(`Date: ${dateFormatted}`, 14, 44);
+
+        // === Bill To (Client Info) ===
+        this._setFont(doc, 'normal', 9);
+        doc.setTextColor(120, 120, 120);
+        doc.text("Bill To:", 140, 35);
+        this._setFont(doc, 'normal', 12);
+        doc.setTextColor(30, 30, 30);
         if (client) {
-            doc.text("Bill To:", 140, 30);
-            doc.setFontSize(12);
-            doc.text(client.name, 140, 36);
-            doc.setFontSize(10);
-            if (client.email) doc.text(client.email, 140, 42);
-            if (client.phone) doc.text(client.phone, 140, 47);
+            doc.text(client.name || '', 140, 42);
+            this._setFont(doc, 'normal', 9);
+            doc.setTextColor(80, 80, 80);
+            let yOff = 48;
+            if (client.email) { doc.text(client.email, 140, yOff); yOff += 5; }
+            if (client.phone) { doc.text(client.phone, 140, yOff); yOff += 5; }
+        } else {
+            doc.text('Walk-in Customer', 140, 42);
         }
 
-        // Table
+        // === Separator line ===
+        doc.setDrawColor(200, 200, 200);
+        doc.line(14, 55, 196, 55);
+
+        // === Items Table (client-facing: no internal costs) ===
         const tableBody = (order.models || []).map((m, i) => [
             i + 1,
-            m.name || 'Unnamed Model',
-            `${printerMap[m.printerId] || '-'} / ${materialMap[m.materialId] || '-'}`,
-            `${m.weightG}g / ${m.estTimeHrs}h`,
-            Utils.formatGEL(m.subtotal)
+            m.name || `Model ${i + 1}`,
+            `${materialMap[m.materialId] || '-'}`,
+            `${m.weightG || 0}g`,
+            `${m.estTimeHrs || 0}h`,
+            `${Utils.formatGEL(order.totalPrice / (order.models || []).length)}`
         ]);
 
         doc.autoTable({
-            startY: 55,
-            head: [['#', 'Item', 'Details', 'Specs', 'Cost']],
+            startY: 60,
+            head: [['#', 'Item', 'Material', 'Weight', 'Time', 'Price']],
             body: tableBody,
             theme: 'striped',
-            headStyles: { fillColor: [66, 66, 66] }
+            headStyles: { fillColor: [70, 130, 180], textColor: 255, fontStyle: 'bold' },
+            styles: { fontSize: 10, cellPadding: 4 },
+            columnStyles: { 5: { halign: 'right' } }
         });
 
-        // Totals
-        const finalY = doc.lastAutoTable.finalY + 10;
-        doc.text(`Subtotal: ${Utils.formatGEL(order.totalCost)}`, 140, finalY);
-        doc.text(`Margin (${order.marginPct}%): +${Utils.formatGEL(order.totalCost * (order.marginPct / 100))}`, 140, finalY + 5);
-        doc.text(`Tax (${order.taxPct}%): +${Utils.formatGEL(order.totalPrice - (order.totalPrice / (1 + order.taxPct / 100)))}`, 140, finalY + 10);
+        // === Total (client-facing: only the final price, no internals) ===
+        const finalY = doc.lastAutoTable.finalY + 15;
 
-        doc.setFontSize(14);
-        doc.setFont(undefined, 'bold');
-        doc.text(`Total: ${Utils.formatGEL(order.totalPrice)}`, 140, finalY + 20);
+        doc.setDrawColor(200, 200, 200);
+        doc.line(120, finalY - 5, 196, finalY - 5);
 
+        this._setFont(doc, 'normal', 16);
+        doc.setTextColor(30, 30, 30);
+        doc.text(`Total: ${Utils.formatGEL(order.totalPrice)}`, 140, finalY + 5);
+
+        // === Footer ===
+        const pageH = doc.internal.pageSize.getHeight();
+        this._setFont(doc, 'normal', 8);
+        doc.setTextColor(160, 160, 160);
+        doc.text('Thank you for your business!', 14, pageH - 15);
+        doc.text('3D Print Service — Batumi, Georgia', 14, pageH - 10);
+
+        // Save
         const d = new Date();
         const geo = new Date(d.toLocaleString('en-US', { timeZone: 'Asia/Tbilisi' }));
         const pad = n => String(n).padStart(2, '0');
         const dateStr = `${geo.getFullYear()}-${pad(geo.getMonth() + 1)}-${pad(geo.getDate())}`;
         doc.save(`3DPrintInvoice_${order.id.slice(0, 8)}_${dateStr}.pdf`);
-        Utils.showToast('PDF downloaded');
+        Utils.showToast('Invoice PDF downloaded');
     },
 
     /** Delete an order */

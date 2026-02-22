@@ -90,15 +90,45 @@ const Settings = {
             const printers = await DB.getAll('printers');
             const materials = await DB.getAll('materials');
             const printerMap = {};
-            printers.forEach(p => printerMap[p.id] = p.name);
+            const printerData = {};
+            printers.forEach(p => { printerMap[p.id] = p.name; printerData[p.id] = p; });
             const materialMap = {};
-            materials.forEach(m => materialMap[m.id] = m.type);
+            const materialData = {};
+            materials.forEach(m => { materialMap[m.id] = m.type; materialData[m.id] = m; });
 
-            // CSV headers
-            let csv = 'Order ID,Date,Client,Status,Margin %,Tax %,Discount %,Logistics ₾,Model,Weight g,Time hrs,Printer,Material,Total Cost ₾,Total Price ₾,Profit ₾\n';
+            const settings = await DB.getSettings();
+            const overheadTotal = await Overheads.getTotalMonthly();
+            const overheadPerHr = (settings.workingHoursPerMonth || 160) > 0
+                ? overheadTotal / (settings.workingHoursPerMonth || 160) : 0;
+
+            // CSV headers (BOM for Excel UTF-8)
+            let csv = '\uFEFF';
+            csv += 'Order ID,Date,Client,Status,Margin %,Tax %,Discount %,Logistics ₾,Model,Weight g,Time hrs,Printer,Material,Total Cost ₾,Total Price ₾,Profit ₾\n';
+
+            // Accumulators for summaries
+            let sumRevenue = 0, sumCost = 0, sumProfit = 0;
+            let sumFilament = 0, sumElectricity = 0, sumMaintenance = 0, sumOverheads = 0;
 
             orders.forEach(o => {
                 const client = clientMap[o.clientId] || '';
+                sumRevenue += o.totalPrice || 0;
+                sumCost += o.totalCost || 0;
+                sumProfit += o.profit || 0;
+
+                // Calculate per-model expense breakdowns
+                let orderPrintTime = 0;
+                (o.models || []).forEach(m => {
+                    const mat = materialData[m.materialId];
+                    const pr = printerData[m.printerId];
+                    if (mat) sumFilament += (m.weightG / 1000) * mat.pricePerKg;
+                    if (pr) {
+                        sumElectricity += (pr.powerW / 1000) * m.estTimeHrs * settings.electricityPerKwh;
+                        sumMaintenance += m.estTimeHrs * pr.maintenanceCostPerHr;
+                    }
+                    orderPrintTime += m.estTimeHrs || 0;
+                });
+                sumOverheads += overheadPerHr * orderPrintTime;
+
                 (o.models || [{ name: '' }]).forEach(m => {
                     csv += [
                         o.id.slice(0, 8),
@@ -121,7 +151,20 @@ const Settings = {
                 });
             });
 
-            const blob = new Blob([csv], { type: 'text/csv' });
+            // Summary rows
+            csv += '\n';
+            csv += `SUMMARY,,,,,,,,,,,,,,\n`;
+            csv += `Total Revenue ₾,,,,,,,,,,,,,,${sumRevenue.toFixed(2)},\n`;
+            csv += `Total Cost ₾,,,,,,,,,,,,,${sumCost.toFixed(2)},,\n`;
+            csv += `Total Profit ₾,,,,,,,,,,,,,,,"${sumProfit.toFixed(2)}"\n`;
+            csv += '\n';
+            csv += `EXPENSE BREAKDOWN,,,,,,,,,,,,,,\n`;
+            csv += `Filament Expense ₾,,,,,,,,,,,,,${sumFilament.toFixed(2)},,\n`;
+            csv += `Electricity Expense ₾,,,,,,,,,,,,,${sumElectricity.toFixed(2)},,\n`;
+            csv += `Maintenance Expense ₾,,,,,,,,,,,,,${sumMaintenance.toFixed(2)},,\n`;
+            csv += `Overheads ₾,,,,,,,,,,,,,${sumOverheads.toFixed(2)},,\n`;
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
