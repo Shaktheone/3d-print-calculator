@@ -99,6 +99,26 @@ const DB = {
         if (typeof FirebaseSync !== 'undefined') FirebaseSync.scheduleUpload();
     },
 
+    /** Clear all stores WITHOUT triggering Firebase upload (used during cloud restore) */
+    async clearAllSilent() {
+        for (const store of this.stores) {
+            await new Promise((resolve, reject) => {
+                const req = this._tx(store, 'readwrite').clear();
+                req.onsuccess = () => resolve();
+                req.onerror = () => reject(req.error);
+            });
+        }
+    },
+
+    /** Put a record WITHOUT triggering Firebase upload (used during cloud restore) */
+    putSilent(store, data) {
+        return new Promise((resolve, reject) => {
+            const req = this._tx(store, 'readwrite').put(data);
+            req.onsuccess = () => resolve(req.result);
+            req.onerror = () => reject(req.error);
+        });
+    },
+
     /** Export all data as JSON object */
     async exportAll() {
         const data = {};
@@ -114,6 +134,17 @@ const DB = {
             if (data[store] && Array.isArray(data[store])) {
                 for (const record of data[store]) {
                     await this.put(store, record);
+                }
+            }
+        }
+    },
+
+    /** Import data WITHOUT triggering Firebase upload (used during cloud restore) */
+    async importAllSilent(data) {
+        for (const store of this.stores) {
+            if (data[store] && Array.isArray(data[store])) {
+                for (const record of data[store]) {
+                    await this.putSilent(store, record);
                 }
             }
         }

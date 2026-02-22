@@ -12,8 +12,18 @@ const FirebaseSync = {
     _debounceMs: 500,
     _docPath: 'app-data/backup',
 
+    // Default config — hardcoded for zero-setup on any device
+    _defaultConfig: {
+        apiKey: "AIzaSyDsmuzwg_jp1ElNRfSwpQY7iYKUechqYPc",
+        authDomain: "dcalculator-f7760.firebaseapp.com",
+        projectId: "dcalculator-f7760",
+        storageBucket: "dcalculator-f7760.firebasestorage.app",
+        messagingSenderId: "820801176255",
+        appId: "1:820801176255:web:2edabb42c3838b3ec23c0a"
+    },
+
     /**
-     * Initialize: check localStorage for saved config and auto-connect if found.
+     * Initialize: auto-connect using saved config or default config.
      * Called during App.init() boot sequence.
      */
     async init() {
@@ -29,33 +39,41 @@ const FirebaseSync = {
             }
         });
 
-        // Try auto-connect from saved config
+        // Determine config: saved > default
+        let config = null;
         const savedConfig = localStorage.getItem('firebase_config');
         if (savedConfig) {
             try {
-                const config = JSON.parse(savedConfig);
-                await this.connect(config, true); // silent = true (no toast on auto-connect)
-            } catch (e) {
-                console.error('[FirebaseSync] Auto-connect failed:', e);
-            }
+                config = JSON.parse(savedConfig);
+            } catch (_) { }
+        }
+        if (!config || !config.apiKey) {
+            config = this._defaultConfig;
+        }
+
+        // Auto-connect
+        try {
+            await this.connect(config, true); // silent = true
+            console.log('[FirebaseSync] ✅ Auto-connected on init');
+        } catch (e) {
+            console.error('[FirebaseSync] Auto-connect failed:', e);
         }
     },
 
     /**
      * Connect to Firebase with the provided config object.
-     * @param {Object} config - Firebase config {apiKey, authDomain, projectId, ...}
-     * @param {boolean} silent - If true, suppress success toast (used for auto-connect)
      */
     async connect(config, silent = false) {
         try {
-            // Validate required fields
             if (!config.apiKey || !config.projectId) {
                 throw new Error('API Key and Project ID are required');
             }
 
-            // Clean up existing app if any
+            // Clean up existing app
             if (this.app) {
                 try { await this.app.delete(); } catch (_) { }
+                this.app = null;
+                this.db = null;
             }
 
             // Initialize Firebase
@@ -70,11 +88,11 @@ const FirebaseSync = {
                 if (e.code === 'failed-precondition') {
                     console.warn('[FirebaseSync] Persistence failed: multiple tabs open');
                 } else if (e.code === 'unimplemented') {
-                    console.warn('[FirebaseSync] Persistence not supported in this browser');
+                    console.warn('[FirebaseSync] Persistence not supported');
                 }
             }
 
-            // Save config to localStorage for auto-reconnect
+            // Save config to localStorage
             localStorage.setItem('firebase_config', JSON.stringify(config));
 
             this.updateStatusUI();
@@ -92,7 +110,9 @@ const FirebaseSync = {
             this.app = null;
             this.db = null;
             this.updateStatusUI();
-            Utils.showToast('Firebase connection failed: ' + e.message, 'error');
+            if (!silent) {
+                Utils.showToast('Firebase connection failed: ' + e.message, 'error');
+            }
             throw e;
         }
     },
@@ -112,7 +132,6 @@ const FirebaseSync = {
         localStorage.removeItem('firebase_config');
         this.updateStatusUI();
         Utils.showToast('Firebase disconnected', 'info');
-        console.log('[FirebaseSync] Disconnected');
     },
 
     /**
@@ -124,7 +143,6 @@ const FirebaseSync = {
 
     /**
      * Upload all local data to Firestore.
-     * Exports the full IndexedDB state and writes it as a single Firestore document.
      */
     async uploadAll() {
         if (!this.isConnected()) return;
@@ -135,10 +153,15 @@ const FirebaseSync = {
             data._source = 'local-upload';
 
             await this.db.doc(this._docPath).set(data);
+
+            // Update last sync time
+            const now = Date.now();
+            localStorage.setItem('firebase_lastSync', String(now));
+            this._updateLastSyncUI(now);
+
             console.log('[FirebaseSync] ✅ Uploaded all data to Firestore');
         } catch (e) {
             console.error('[FirebaseSync] Upload failed:', e);
-            // Don't show error toast for network issues — Firestore will retry automatically
             if (e.code !== 'unavailable') {
                 Utils.showToast('Cloud sync failed: ' + e.message, 'error');
             }
@@ -146,8 +169,8 @@ const FirebaseSync = {
     },
 
     /**
-     * Download data from Firestore and overwrite local IndexedDB.
-     * Used for Force Download — always overwrites.
+     * Download data from Firestore and OVERWRITE local IndexedDB.
+     * Clears local stores first for a clean import (handles deletions).
      */
     async downloadAll() {
         if (!this.isConnected()) return;
@@ -160,12 +183,17 @@ const FirebaseSync = {
             }
 
             const cloudData = snapshot.data();
-            // Remove metadata fields before importing
             delete cloudData.lastModified;
             delete cloudData._source;
 
-            await DB.importAll(cloudData);
+            // Clear local stores THEN import (handles deleted items)
+            await DB.clearAllSilent();
+            await DB.importAllSilent(cloudData);
             App.refreshCurrentSection();
+
+            const now = Date.now();
+            localStorage.setItem('firebase_lastSync', String(now));
+            this._updateLastSyncUI(now);
 
             Utils.showToast('Cloud data loaded successfully!', 'success');
             console.log('[FirebaseSync] ✅ Downloaded all data from Firestore');
@@ -185,7 +213,6 @@ const FirebaseSync = {
         try {
             const snapshot = await this.db.doc(this._docPath).get();
             if (!snapshot.exists) {
-                // No cloud data yet — do initial upload
                 console.log('[FirebaseSync] No cloud data found, doing initial upload');
                 await this.uploadAll();
                 return;
@@ -193,34 +220,35 @@ const FirebaseSync = {
 
             const cloudData = snapshot.data();
             const cloudTimestamp = cloudData.lastModified || 0;
-
-            // Check local timestamp
             const localTimestamp = parseInt(localStorage.getItem('firebase_lastSync') || '0', 10);
 
             if (cloudTimestamp > localTimestamp) {
                 console.log('[FirebaseSync] Cloud data is newer, downloading...');
-                // Remove metadata fields before importing
                 const importData = { ...cloudData };
                 delete importData.lastModified;
                 delete importData._source;
 
-                await DB.importAll(importData);
-                localStorage.setItem('firebase_lastSync', String(cloudTimestamp));
-                App.refreshCurrentSection();
+                // Clear + re-import for clean sync (handles deletions)
+                await DB.clearAllSilent();
+                await DB.importAllSilent(importData);
 
+                const now = Date.now();
+                localStorage.setItem('firebase_lastSync', String(cloudTimestamp));
+                this._updateLastSyncUI(now);
+
+                App.refreshCurrentSection();
                 Utils.showToast('Synced newer data from cloud', 'info');
             } else {
                 console.log('[FirebaseSync] Local data is current, no download needed');
+                this._updateLastSyncUI(localTimestamp);
             }
         } catch (e) {
             console.error('[FirebaseSync] Download check failed:', e);
-            // Silently fail on load — don't block the app
         }
     },
 
     /**
      * Debounced upload — called after every DB mutation.
-     * Batches rapid changes into a single Firestore write.
      */
     scheduleUpload() {
         if (!this.isConnected()) return;
@@ -228,9 +256,24 @@ const FirebaseSync = {
         clearTimeout(this._uploadTimer);
         this._uploadTimer = setTimeout(async () => {
             await this.uploadAll();
-            // Update local sync timestamp
-            localStorage.setItem('firebase_lastSync', String(Date.now()));
         }, this._debounceMs);
+    },
+
+    /**
+     * Update the "Last sync" time UI.
+     */
+    _updateLastSyncUI(timestamp) {
+        const el = document.getElementById('firebase-last-sync');
+        const timeEl = document.getElementById('firebase-last-sync-time');
+        if (!el || !timeEl) return;
+
+        if (timestamp && timestamp > 0) {
+            const d = new Date(timestamp);
+            timeEl.textContent = d.toLocaleString();
+            el.style.display = '';
+        } else {
+            el.style.display = 'none';
+        }
     },
 
     /**
@@ -242,7 +285,7 @@ const FirebaseSync = {
         const connectBtn = document.getElementById('firebase-connect-btn');
         const configInputs = document.getElementById('firebase-config-inputs');
 
-        if (!badge) return; // UI not rendered yet
+        if (!badge) return;
 
         if (this.isConnected()) {
             badge.textContent = 'Connected';
@@ -250,6 +293,10 @@ const FirebaseSync = {
             if (connectedControls) connectedControls.classList.remove('d-none');
             if (connectBtn) connectBtn.classList.add('d-none');
             if (configInputs) configInputs.classList.add('opacity-50');
+
+            // Show last sync time
+            const lastSync = parseInt(localStorage.getItem('firebase_lastSync') || '0', 10);
+            this._updateLastSyncUI(lastSync);
         } else {
             badge.textContent = 'Not connected';
             badge.className = 'badge bg-secondary ms-2';
@@ -274,19 +321,22 @@ const FirebaseSync = {
     },
 
     /**
-     * Populate Settings form inputs from saved config.
+     * Populate Settings form inputs from saved config or defaults.
      */
     populateFormFromSaved() {
+        let config = null;
         const saved = localStorage.getItem('firebase_config');
-        if (!saved) return;
-        try {
-            const config = JSON.parse(saved);
-            const fields = ['apiKey', 'authDomain', 'projectId', 'storageBucket', 'messagingSenderId', 'appId'];
-            fields.forEach(f => {
-                const el = document.getElementById('fb-' + f);
-                if (el && config[f]) el.value = config[f];
-            });
-        } catch (_) { }
+        if (saved) {
+            try { config = JSON.parse(saved); } catch (_) { }
+        }
+        if (!config) {
+            config = this._defaultConfig;
+        }
+        const fields = ['apiKey', 'authDomain', 'projectId', 'storageBucket', 'messagingSenderId', 'appId'];
+        fields.forEach(f => {
+            const el = document.getElementById('fb-' + f);
+            if (el && config[f]) el.value = config[f];
+        });
     },
 
     /**
@@ -294,6 +344,10 @@ const FirebaseSync = {
      */
     async handleConnect() {
         const config = this.getConfigFromForm();
+        // Fall back to defaults if form is empty
+        if (!config.apiKey) {
+            Object.assign(config, this._defaultConfig);
+        }
         try {
             await this.connect(config);
         } catch (_) { /* error already shown in connect() */ }
@@ -306,7 +360,6 @@ const FirebaseSync = {
         if (!this.isConnected()) return;
         Utils.showToast('Uploading all data to cloud...', 'info');
         await this.uploadAll();
-        localStorage.setItem('firebase_lastSync', String(Date.now()));
         Utils.showToast('All data uploaded to cloud!', 'success');
     },
 
@@ -317,6 +370,5 @@ const FirebaseSync = {
         if (!this.isConnected()) return;
         Utils.showToast('Downloading data from cloud...', 'info');
         await this.downloadAll();
-        localStorage.setItem('firebase_lastSync', String(Date.now()));
     }
 };
