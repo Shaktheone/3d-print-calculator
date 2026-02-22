@@ -191,7 +191,11 @@ const History = {
         doc.setFont(undefined, 'bold');
         doc.text(`Total: ${Utils.formatGEL(order.totalPrice)}`, 140, finalY + 20);
 
-        doc.save(`Invoice_${order.id.slice(0, 8)}.pdf`);
+        const d = new Date();
+        const geo = new Date(d.toLocaleString('en-US', { timeZone: 'Asia/Tbilisi' }));
+        const pad = n => String(n).padStart(2, '0');
+        const dateStr = `${geo.getFullYear()}-${pad(geo.getMonth() + 1)}-${pad(geo.getDate())}`;
+        doc.save(`3DPrintInvoice_${order.id.slice(0, 8)}_${dateStr}.pdf`);
         Utils.showToast('PDF downloaded');
     },
 

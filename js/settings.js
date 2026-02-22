@@ -32,7 +32,10 @@ const Settings = {
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `3d-printcalc-backup-${new Date().toISOString().slice(0, 10)}.json`;
+            const d = new Date(); const pad = n => String(n).padStart(2, '0');
+            const geo = new Date(d.toLocaleString('en-US', { timeZone: 'Asia/Tbilisi' }));
+            const stamp = `${geo.getFullYear()}-${pad(geo.getMonth() + 1)}-${pad(geo.getDate())}_${pad(geo.getHours())}${pad(geo.getMinutes())}`;
+            a.download = `3DPrintCalc_Backup_${stamp}.json`;
             a.click();
             URL.revokeObjectURL(url);
             Utils.showToast('Data exported as JSON');
@@ -122,7 +125,11 @@ const Settings = {
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `3d-printcalc-orders-${new Date().toISOString().slice(0, 10)}.csv`;
+            const d = new Date();
+            const geo = new Date(d.toLocaleString('en-US', { timeZone: 'Asia/Tbilisi' }));
+            const pad = n => String(n).padStart(2, '0');
+            const dateStr = `${geo.getFullYear()}-${pad(geo.getMonth() + 1)}-${pad(geo.getDate())}`;
+            a.download = `3DPrintOrders_${dateStr}.csv`;
             a.click();
             URL.revokeObjectURL(url);
             Utils.showToast('Orders exported as CSV');
