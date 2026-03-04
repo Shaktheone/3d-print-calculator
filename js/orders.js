@@ -277,6 +277,58 @@ const Orders = {
     });
   },
 
+  /**
+   * Validate and deduct stock for every model in an order.
+   * Throws an error string if any material has insufficient stock.
+   */
+  async deductStockFromOrder(order) {
+    const stockConsumed = [];
+    // First pass: validate all materials have enough stock
+    for (const m of order.models) {
+      const material = await DB.get('materials', m.materialId);
+      if (!material) continue;
+      const weightKg = parseFloat((m.weightG / 1000).toFixed(3));
+      const currentStock = parseFloat(material.stockKg) || 0;
+      if (currentStock < weightKg) {
+        throw `Not enough stock! Only ${currentStock.toFixed(3)} kg left of ${material.type}. Need ${weightKg.toFixed(3)} kg. Order cannot be saved.`;
+      }
+    }
+    // Second pass: deduct and collect consumed info
+    for (const m of order.models) {
+      const material = await DB.get('materials', m.materialId);
+      if (!material) continue;
+      const weightKg = parseFloat((m.weightG / 1000).toFixed(3));
+      material.stockKg = parseFloat((material.stockKg - weightKg).toFixed(3));
+      await DB.put('materials', material);
+      stockConsumed.push({ materialId: m.materialId, materialType: material.type, consumedKg: weightKg });
+    }
+    return stockConsumed;
+  },
+
+  /**
+   * Restore stock from a previously saved order (used when editing).
+   * Adds back the consumed amounts to each material.
+   */
+  async restoreStockFromOrder(order) {
+    if (!order.stockConsumed || !order.stockConsumed.length) {
+      // Fallback: restore from model weights if stockConsumed wasn't stored
+      for (const m of (order.models || [])) {
+        const material = await DB.get('materials', m.materialId);
+        if (!material) continue;
+        const weightKg = parseFloat((m.weightG / 1000).toFixed(3));
+        material.stockKg = parseFloat(((parseFloat(material.stockKg) || 0) + weightKg).toFixed(3));
+        await DB.put('materials', material);
+      }
+      return;
+    }
+    for (const sc of order.stockConsumed) {
+      const material = await DB.get('materials', sc.materialId);
+      if (!material) continue;
+      material.stockKg = parseFloat(((parseFloat(material.stockKg) || 0) + sc.consumedKg).toFixed(3));
+      await DB.put('materials', material);
+    }
+  },
+
   /** Save the order to IndexedDB */
   async saveOrder() {
     const models = this.collectModels();
@@ -303,6 +355,15 @@ const Orders = {
     const calc = await this.calculate(models);
     const editId = Utils.getVal('order-edit-id');
 
+    // If editing, restore previous stock first
+    if (editId) {
+      const existingOrder = await DB.get('orders', editId);
+      if (existingOrder) {
+        await this.restoreStockFromOrder(existingOrder);
+      }
+    }
+
+    // Build order object (without stockConsumed yet)
     const order = {
       id: editId || Utils.generateId(),
       clientId: Utils.getVal('order-client'),
@@ -319,8 +380,27 @@ const Orders = {
       profit: calc.profit
     };
 
+    // Validate and deduct stock
+    try {
+      order.stockConsumed = await this.deductStockFromOrder(order);
+    } catch (err) {
+      // Stock insufficient — re-deduct the restored stock if we were editing
+      if (editId) {
+        const existingOrder = await DB.get('orders', editId);
+        if (existingOrder) await this.deductStockFromOrder(existingOrder).catch(() => { });
+      }
+      Utils.showToast(String(err), 'error');
+      return;
+    }
+
     await DB.put('orders', order);
     Utils.showToast(`Order saved — Total: ${Utils.formatGEL(order.totalPrice)}`);
+
+    // Refresh Materials table to show updated stock levels
+    if (typeof Materials !== 'undefined' && Materials.render) {
+      Materials.render();
+    }
+
     this.resetForm();
   },
 

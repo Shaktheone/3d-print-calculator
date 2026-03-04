@@ -123,6 +123,13 @@ const History = {
             if (m.extras?.length) {
                 details += `  Extras: ${m.extras.map(e => `${e.label} ${Utils.formatGEL(e.cost)}`).join(', ')}\n`;
             }
+            // Show consumed stock for this model
+            if (order.stockConsumed) {
+                const sc = order.stockConsumed.find(s => s.materialId === m.materialId);
+                if (sc) {
+                    details += `  Consumed from stock: ${sc.consumedKg.toFixed(3)} kg of ${sc.materialType}\n`;
+                }
+            }
         });
 
         details += `\nTotal Cost: ${Utils.formatGEL(order.totalCost || 0)}`;
@@ -244,23 +251,31 @@ const History = {
         doc.line(14, 55, 196, 55);
 
         // === Items Table ===
-        const tableBody = (order.models || []).map((m, i) => [
-            i + 1,
-            m.name || `Model ${i + 1}`,
-            `${materialMap[m.materialId] || '-'}`,
-            `${m.weightG || 0}g`,
-            `${m.estTimeHrs || 0}h`,
-            `${(order.totalPrice / (order.models || []).length).toFixed(2)} GEL`
-        ]);
+        const tableBody = (order.models || []).map((m, i) => {
+            let stockUsed = '—';
+            if (order.stockConsumed) {
+                const sc = order.stockConsumed.find(s => s.materialId === m.materialId);
+                if (sc) stockUsed = `${sc.consumedKg.toFixed(3)} kg`;
+            }
+            return [
+                i + 1,
+                m.name || `Model ${i + 1}`,
+                `${materialMap[m.materialId] || '-'}`,
+                `${m.weightG || 0}g`,
+                `${m.estTimeHrs || 0}h`,
+                stockUsed,
+                `${(order.totalPrice / (order.models || []).length).toFixed(2)} GEL`
+            ];
+        });
 
         doc.autoTable({
             startY: 60,
-            head: [['#', 'Item', 'Material', 'Weight', 'Time', 'Price']],
+            head: [['#', 'Item', 'Material', 'Weight', 'Time', 'Stock Used', 'Price']],
             body: tableBody,
             theme: 'striped',
             headStyles: { fillColor: [70, 130, 180], textColor: 255, fontStyle: 'bold', font: 'helvetica' },
             styles: { fontSize: 10, cellPadding: 4, font: 'helvetica' },
-            columnStyles: { 5: { halign: 'right' } },
+            columnStyles: { 6: { halign: 'right' } },
             // Per-cell font: Georgian for cells with Georgian text, helvetica otherwise
             didParseCell: function (data) {
                 if (data.section === 'body' && self._georgianAvailable) {

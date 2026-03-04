@@ -16,7 +16,7 @@ const Materials = {
         <td class="fw-semibold">${Utils.escapeHtml(m.type)}</td>
         <td class="text-end gel-value">${Utils.formatGEL(m.pricePerKg)}</td>
         <td class="text-end">${m.densityGCm3}</td>
-        <td class="text-end">${m.stockKg} kg</td>
+        <td class="text-end">${parseFloat(m.stockKg).toFixed(3)} kg${parseFloat(m.stockKg) < 0.2 ? ' <span class="badge bg-danger ms-1">Low stock!</span>' : ''}</td>
         <td>${Utils.escapeHtml(m.color || '—')}</td>
         <td class="text-center actions-cell">
           <button class="btn btn-sm btn-outline-primary me-1" onclick="Materials.openModal('${m.id}')" title="Edit"><i class="bi bi-pencil"></i></button>
@@ -45,7 +45,7 @@ const Materials = {
             Utils.setVal('material-type', 'PLA');
             Utils.setVal('material-price', 55);
             Utils.setVal('material-density', 1.24);
-            Utils.setVal('material-stock', 1.0);
+            Utils.setVal('material-stock', 0);
             Utils.setVal('material-color', 'White');
         }
         modal.show();

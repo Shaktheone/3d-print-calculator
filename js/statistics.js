@@ -319,7 +319,7 @@ const Statistics = {
         this._showCanvas(canvasId);
 
         const matMap = {};
-        materials.forEach(m => matMap[m.id] = { type: m.type, cost: 0, grams: 0 });
+        materials.forEach(m => matMap[m.id] = { type: m.type, cost: 0, grams: 0, stockKg: parseFloat(m.stockKg) || 0 });
 
         orders.forEach(o => {
             (o.models || []).forEach(m => {
@@ -340,6 +340,7 @@ const Statistics = {
         const labels = usedMats.map(m => m.type);
         const costData = usedMats.map(m => parseFloat(m.cost.toFixed(2)));
         const volData = usedMats.map(m => parseFloat(m.grams.toFixed(0)));
+        const stockData = usedMats.map(m => parseFloat((m.stockKg * 1000).toFixed(0)));
 
         this.charts.materials = new Chart(document.getElementById(canvasId), {
             type: 'bar',
@@ -358,6 +359,15 @@ const Statistics = {
                         data: volData,
                         backgroundColor: 'rgba(124, 58, 237, 0.2)',
                         borderColor: '#7c3aed',
+                        borderWidth: 1,
+                        borderRadius: 4,
+                        yAxisID: 'y1'
+                    },
+                    {
+                        label: 'Remaining Stock (g)',
+                        data: stockData,
+                        backgroundColor: 'rgba(5, 150, 105, 0.35)',
+                        borderColor: '#059669',
                         borderWidth: 1,
                         borderRadius: 4,
                         yAxisID: 'y1'
