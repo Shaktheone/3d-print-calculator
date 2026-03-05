@@ -410,6 +410,7 @@ body {
   border-radius: var(--card-border-radius);
   box-shadow: var(--card-shadow);
   padding: 1.25rem;
+  position: relative;
 }
 
 /* ========== Toast ========== */
@@ -502,18 +503,6 @@ body {
 /* Ensure dropdown menus render above everything */
 .dropdown-menu {
   z-index: 1055;
-}
-
-/* ===== Chart cards ===== */
-.chart-card {
-  padding: 1.25rem;
-  border-radius: 12px;
-  position: relative;
-  min-height: 320px;
-}
-
-.chart-card canvas {
-  max-height: 260px;
 }
 
 .chart-empty {

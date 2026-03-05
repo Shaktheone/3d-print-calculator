@@ -32,10 +32,21 @@ const Statistics = {
         this.renderKPIs(filteredOrders, materials, printers, settings);
         this.renderAlerts(filteredOrders, clients, materials);
 
-        this.renderRevenueVsCost(filteredOrders);
-        this.renderCostsAndVolume(filteredOrders, materials);
-        this.renderPrinterUtilization(filteredOrders, printers, settings);
-        this.renderClientConcentration(filteredOrders, clients);
+        // Destroy all existing charts first to prevent stale references
+        ['revenue', 'materials', 'printers', 'clients'].forEach(k => this._destroy(k));
+
+        // Render charts — use rAF to ensure section is visible and has dimensions
+        requestAnimationFrame(() => {
+            try { this.renderRevenueVsCost(filteredOrders); } catch (e) { console.warn('[Stats] Revenue chart error:', e); }
+            try { this.renderCostsAndVolume(filteredOrders, materials); } catch (e) { console.warn('[Stats] Materials chart error:', e); }
+            try { this.renderPrinterUtilization(filteredOrders, printers, settings); } catch (e) { console.warn('[Stats] Printers chart error:', e); }
+            try { this.renderClientConcentration(filteredOrders, clients); } catch (e) { console.warn('[Stats] Clients chart error:', e); }
+
+            // Force resize after render to fix any dimension issues
+            setTimeout(() => {
+                Object.values(this.charts).forEach(c => { if (c) c.resize(); });
+            }, 100);
+        });
     },
 
     applyFilter() {
@@ -77,23 +88,24 @@ const Statistics = {
     _showEmpty(canvasId, message) {
         const canvas = document.getElementById(canvasId);
         if (!canvas) return;
-        const parent = canvas.parentElement;
-        const prev = parent.querySelector('.chart-empty');
+        const container = canvas.closest('.chart-container') || canvas.parentElement;
+        const prev = container.parentElement.querySelector('.chart-empty');
         if (prev) prev.remove();
-        canvas.style.display = 'none';
+        container.style.display = 'none';
 
         const div = document.createElement('div');
         div.className = 'chart-empty text-center text-muted py-5';
         div.innerHTML = `<i class="bi bi-bar-chart fs-1 d-block mb-2 opacity-50"></i>${message}`;
-        parent.appendChild(div);
+        container.parentElement.appendChild(div);
     },
 
     /** Show canvas and remove any empty message */
     _showCanvas(canvasId) {
         const canvas = document.getElementById(canvasId);
         if (!canvas) return;
-        canvas.style.display = '';
-        const prev = canvas.parentElement.querySelector('.chart-empty');
+        const container = canvas.closest('.chart-container') || canvas.parentElement;
+        container.style.display = '';
+        const prev = container.parentElement.querySelector('.chart-empty');
         if (prev) prev.remove();
     },
 

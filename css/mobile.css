@@ -350,8 +350,12 @@
 
     /* ========== Charts ========== */
     .chart-card {
-        min-height: 200px;
+        min-height: auto;
         padding: 1rem;
+    }
+
+    .chart-container {
+        height: 250px !important;
     }
 
     .chart-card canvas {
