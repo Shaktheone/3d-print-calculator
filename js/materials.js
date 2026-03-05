@@ -11,19 +11,28 @@ const Materials = {
             tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-muted"><i class="bi bi-box-seam fs-3 d-block mb-2"></i>No materials yet. Click "Add Material" to start.</td></tr>`;
             return;
         }
-        tbody.innerHTML = materials.map(m => `
+        tbody.innerHTML = materials.map(m => {
+            const hex = m.colorHex || '#cccccc';
+            const colorName = Utils.escapeHtml(m.color || '—');
+            return `
   <tr>
-    <td class="fw-semibold" data-label="Type">${Utils.escapeHtml(m.type)}</td>
+    <td class="fw-semibold" data-label="Type">
+      <span class="color-swatch" style="background-color:${hex}"></span>
+      ${Utils.escapeHtml(m.type)}
+    </td>
     <td class="text-end gel-value" data-label="Price ₾/kg">${Utils.formatGEL(m.pricePerKg)}</td>
     <td class="text-end" data-label="Density">${m.densityGCm3}</td>
     <td class="text-end" data-label="Stock">${parseFloat(m.stockKg).toFixed(3)} kg${parseFloat(m.stockKg) < 0.2 ? ' <span class="badge bg-danger ms-1">Low stock!</span>' : ''}</td>
-    <td data-label="Color">${Utils.escapeHtml(m.color || '—')}</td>
+    <td data-label="Color">
+      <span class="color-swatch" style="background-color:${hex}"></span>
+      ${colorName}
+    </td>
     <td class="text-center actions-cell" data-label="">
       <button class="btn btn-sm btn-outline-primary me-1" onclick="Materials.openModal('${m.id}')" title="Edit"><i class="bi bi-pencil"></i></button>
       <button class="btn btn-sm btn-outline-danger" onclick="Materials.remove('${m.id}')" title="Delete"><i class="bi bi-trash"></i></button>
     </td>
-  </tr>
-    `).join('');
+  </tr>`;
+        }).join('');
     },
 
     /** Open add/edit modal */
@@ -40,6 +49,7 @@ const Materials = {
             Utils.setVal('material-density', m.densityGCm3);
             Utils.setVal('material-stock', m.stockKg);
             Utils.setVal('material-color', m.color || '');
+            Utils.setVal('material-color-hex', m.colorHex || '#FFFFFF');
         } else {
             Utils.setVal('material-id', '');
             Utils.setVal('material-type', 'PLA');
@@ -47,6 +57,7 @@ const Materials = {
             Utils.setVal('material-density', 1.24);
             Utils.setVal('material-stock', 0);
             Utils.setVal('material-color', 'White');
+            Utils.setVal('material-color-hex', '#FFFFFF');
         }
         modal.show();
     },
@@ -62,7 +73,8 @@ const Materials = {
             pricePerKg: Utils.parseNum(Utils.getVal('material-price'), 55),
             densityGCm3: Utils.parseNum(Utils.getVal('material-density'), 1.24),
             stockKg: Utils.parseNum(Utils.getVal('material-stock'), 1),
-            color: Utils.getVal('material-color')
+            color: Utils.getVal('material-color'),
+            colorHex: Utils.getVal('material-color-hex') || '#FFFFFF'
         };
 
         await DB.put('materials', data);

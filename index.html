@@ -723,8 +723,15 @@
               id="material-density" value="1.24" min="0" step="0.01"></div>
           <div class="mb-3"><label class="form-label">Stock (kg)</label><input type="number" class="form-control"
               id="material-stock" value="1.0" min="0" step="0.1"></div>
-          <div class="mb-3"><label class="form-label">Color</label><input type="text" class="form-control"
-              id="material-color" value="White"></div>
+          <div class="mb-3">
+            <label class="form-label">Color</label>
+            <div class="d-flex gap-2 align-items-center">
+              <input type="color" class="form-control form-control-color" id="material-color-hex" value="#FFFFFF"
+                title="Pick filament color" style="min-width:48px; min-height:48px; padding:4px; cursor:pointer;">
+              <input type="text" class="form-control" id="material-color" value="White"
+                placeholder="Color name (e.g. White, Orange...)">
+            </div>
+          </div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>

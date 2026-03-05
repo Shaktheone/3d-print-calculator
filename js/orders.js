@@ -49,7 +49,7 @@ const Orders = {
   async materialOptions(selectedId) {
     const materials = await DB.getAll('materials');
     return materials.map(m =>
-      `<option value="${m.id}" ${m.id === selectedId ? 'selected' : ''}>${Utils.escapeHtml(m.type)} (${Utils.formatGEL(m.pricePerKg)}/kg)</option>`
+      `<option value="${m.id}" ${m.id === selectedId ? 'selected' : ''} data-color="${m.colorHex || '#ccc'}">${Utils.escapeHtml(m.type)} — ${Utils.escapeHtml(m.color || '?')} (${Utils.formatGEL(m.pricePerKg)}/kg)</option>`
     ).join('');
   },
 

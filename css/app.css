@@ -404,6 +404,29 @@ body {
   color: var(--accent);
 }
 
+/* ========== Color Swatch ========== */
+.color-swatch {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2), inset 0 0 0 1px rgba(0, 0, 0, 0.1);
+  vertical-align: middle;
+  margin-right: 6px;
+  flex-shrink: 0;
+}
+
+[data-bs-theme="dark"] .color-swatch {
+  border-color: rgba(255, 255, 255, 0.35);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4), inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+.form-control-color {
+  border-radius: 10px !important;
+  cursor: pointer;
+}
+
 /* ========== Charts ========== */
 .chart-card {
   border: none;
