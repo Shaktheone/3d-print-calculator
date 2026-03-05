@@ -19,7 +19,7 @@ const Overheads = {
         } else {
             tbody.innerHTML = overheads.map(o => `<tr>
                 <td data-label="Label">${Utils.escapeHtml(o.label)}</td>
-                <td class="text-end gel-value" data-label="Amount">${Utils.formatGEL(o.amountPerMonth)}</td>
+                <td class="text-end fw-bold" data-label="Amount">${Utils.formatGEL(o.amountPerMonth)}</td>
                 <td data-label="Scope"><span class="badge bg-info">${Utils.escapeHtml(o.scope)}</span></td>
                 <td class="text-center actions-cell" data-label="">
                     <button class="btn btn-sm btn-outline-primary me-1" onclick="Overheads.openModal('${o.id}')"><i class="bi bi-pencil"></i></button>
@@ -40,7 +40,7 @@ const Overheads = {
                 <td data-label="Date">${Utils.formatDate(e.date)}</td>
                 <td data-label="Label">${Utils.escapeHtml(e.label)}</td>
                 <td data-label="Category"><span class="badge bg-warning text-dark">${Utils.escapeHtml(e.category || '—')}</span></td>
-                <td class="text-end gel-value" data-label="Amount">${Utils.formatGEL(e.amount)}</td>
+                <td class="text-end fw-bold" data-label="Amount">${Utils.formatGEL(e.amount)}</td>
                 <td class="text-muted small" data-label="Notes">${Utils.escapeHtml(e.notes || '')}</td>
                 <td class="text-center actions-cell" data-label="">
                     <button class="btn btn-sm btn-outline-primary me-1" onclick="Overheads.openModal('${e.id}', 'expense')"><i class="bi bi-pencil"></i></button>
