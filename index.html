@@ -3,13 +3,14 @@
 
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>3D Print Cost Calculator — GEL ₾</title>
   <meta name="description"
     content="Offline-first 3D printing cost calculator for Georgia. All prices in Georgian Lari (₾ GEL).">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
   <link href="css/app.css" rel="stylesheet">
+  <link href="css/mobile.css" rel="stylesheet">
   <!-- Firebase SDK (compat mode for CDN usage) -->
   <script src="https://www.gstatic.com/firebasejs/11.4.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore-compat.js"></script>
@@ -142,7 +143,7 @@
           <div class="card-body">
             <h6 class="fw-bold mb-3"><i class="bi bi-clock-history me-2"></i>Recent Orders</h6>
             <div class="table-responsive">
-              <table class="table table-sm table-hover mb-0">
+              <table class="table table-sm table-hover mb-0 mobile-card-table">
                 <thead>
                   <tr>
                     <th>Date</th>
@@ -168,7 +169,7 @@
         <div class="card stat-card">
           <div class="card-body p-0">
             <div class="table-responsive">
-              <table class="table table-hover mb-0" id="printers-table">
+              <table class="table table-hover mb-0 mobile-card-table" id="printers-table">
                 <thead>
                   <tr>
                     <th onclick="Utils.sortHTMLTable('printers-table',0,'text')" style="cursor:pointer">Name</th>
@@ -201,7 +202,7 @@
         <div class="card stat-card">
           <div class="card-body p-0">
             <div class="table-responsive">
-              <table class="table table-hover mb-0" id="materials-table">
+              <table class="table table-hover mb-0 mobile-card-table" id="materials-table">
                 <thead>
                   <tr>
                     <th onclick="Utils.sortHTMLTable('materials-table',0,'text')" style="cursor:pointer">Type</th>
@@ -265,7 +266,7 @@
           </div>
           <div class="card-body p-0">
             <div class="table-responsive">
-              <table class="table table-hover mb-0" id="overheads-table">
+              <table class="table table-hover mb-0 mobile-card-table" id="overheads-table">
                 <thead>
                   <tr>
                     <th onclick="Utils.sortHTMLTable('overheads-table',0,'text')" style="cursor:pointer">Label</th>
@@ -287,7 +288,7 @@
           </div>
           <div class="card-body p-0">
             <div class="table-responsive">
-              <table class="table table-hover mb-0" id="expenses-table">
+              <table class="table table-hover mb-0 mobile-card-table" id="expenses-table">
                 <thead>
                   <tr>
                     <th onclick="Utils.sortHTMLTable('expenses-table',0,'date')" style="cursor:pointer">Date</th>
@@ -323,7 +324,7 @@
         <div class="card stat-card">
           <div class="card-body p-0">
             <div class="table-responsive">
-              <table class="table table-hover mb-0" id="clients-table">
+              <table class="table table-hover mb-0 mobile-card-table" id="clients-table">
                 <thead>
                   <tr>
                     <th onclick="Utils.sortHTMLTable('clients-table',0,'text')" style="cursor:pointer">Name</th>
@@ -500,7 +501,7 @@
         <div class="card stat-card">
           <div class="card-body p-0">
             <div class="table-responsive">
-              <table class="table table-hover mb-0" id="history-table">
+              <table class="table table-hover mb-0 mobile-card-table" id="history-table">
                 <thead>
                   <tr>
                     <th onclick="Utils.sortHTMLTable('history-table',0,'text')" style="cursor:pointer">Order #</th>
@@ -650,7 +651,7 @@
 
   <!-- Printer Modal -->
   <div class="modal fade" id="printerModal" tabindex="-1">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-fullscreen-sm-down">
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title" id="printerModalTitle">Add Printer</h5>
@@ -681,7 +682,7 @@
 
   <!-- Material Modal -->
   <div class="modal fade" id="materialModal" tabindex="-1">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-fullscreen-sm-down">
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title" id="materialModalTitle">Add Material</h5>
@@ -727,7 +728,7 @@
 
   <!-- Overhead / Expense Modal -->
   <div class="modal fade" id="overheadModal" tabindex="-1">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-fullscreen-sm-down">
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title" id="overheadModalTitle">Add Overhead</h5>
@@ -788,7 +789,7 @@
 
   <!-- Client Modal -->
   <div class="modal fade" id="clientModal" tabindex="-1">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-fullscreen-sm-down">
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title" id="clientModalTitle">Add Client</h5>
@@ -831,6 +832,25 @@
 
   <!-- ====== TOAST CONTAINER ====== -->
   <div id="toast-container" class="toast-container position-fixed bottom-0 end-0 p-3"></div>
+
+  <!-- ====== Mobile Bottom Navigation ====== -->
+  <nav class="mobile-bottom-nav d-lg-none" id="mobile-bottom-nav">
+    <button data-section="dashboard" class="active" aria-label="Dashboard">
+      <i class="bi bi-speedometer2"></i><span>Home</span>
+    </button>
+    <button data-section="orders" aria-label="Orders">
+      <i class="bi bi-cart3"></i><span>Orders</span>
+    </button>
+    <button data-section="materials" aria-label="Materials">
+      <i class="bi bi-box-seam"></i><span>Materials</span>
+    </button>
+    <button data-section="statistics" aria-label="Statistics">
+      <i class="bi bi-graph-up"></i><span>Stats</span>
+    </button>
+    <button data-section="settings" aria-label="Settings">
+      <i class="bi bi-gear"></i><span>Settings</span>
+    </button>
+  </nav>
 
   <!-- ====== SCRIPTS ====== -->
   <!-- Core Libraries -->

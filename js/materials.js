@@ -12,17 +12,17 @@ const Materials = {
             return;
         }
         tbody.innerHTML = materials.map(m => `
-      <tr>
-        <td class="fw-semibold">${Utils.escapeHtml(m.type)}</td>
-        <td class="text-end gel-value">${Utils.formatGEL(m.pricePerKg)}</td>
-        <td class="text-end">${m.densityGCm3}</td>
-        <td class="text-end">${parseFloat(m.stockKg).toFixed(3)} kg${parseFloat(m.stockKg) < 0.2 ? ' <span class="badge bg-danger ms-1">Low stock!</span>' : ''}</td>
-        <td>${Utils.escapeHtml(m.color || '—')}</td>
-        <td class="text-center actions-cell">
-          <button class="btn btn-sm btn-outline-primary me-1" onclick="Materials.openModal('${m.id}')" title="Edit"><i class="bi bi-pencil"></i></button>
-          <button class="btn btn-sm btn-outline-danger" onclick="Materials.remove('${m.id}')" title="Delete"><i class="bi bi-trash"></i></button>
-        </td>
-      </tr>
+  <tr>
+    <td class="fw-semibold" data-label="Type">${Utils.escapeHtml(m.type)}</td>
+    <td class="text-end gel-value" data-label="Price ₾/kg">${Utils.formatGEL(m.pricePerKg)}</td>
+    <td class="text-end" data-label="Density">${m.densityGCm3}</td>
+    <td class="text-end" data-label="Stock">${parseFloat(m.stockKg).toFixed(3)} kg${parseFloat(m.stockKg) < 0.2 ? ' <span class="badge bg-danger ms-1">Low stock!</span>' : ''}</td>
+    <td data-label="Color">${Utils.escapeHtml(m.color || '—')}</td>
+    <td class="text-center actions-cell" data-label="">
+      <button class="btn btn-sm btn-outline-primary me-1" onclick="Materials.openModal('${m.id}')" title="Edit"><i class="bi bi-pencil"></i></button>
+      <button class="btn btn-sm btn-outline-danger" onclick="Materials.remove('${m.id}')" title="Delete"><i class="bi bi-trash"></i></button>
+    </td>
+  </tr>
     `).join('');
     },
 

@@ -52,6 +52,14 @@ const App = {
             document.getElementById('dark-mode-toggle')?.addEventListener('click', () => this.toggleDarkMode());
             document.getElementById('dark-mode-mobile')?.addEventListener('click', () => this.toggleDarkMode());
 
+            // Step 5.5: Mobile bottom nav
+            document.querySelectorAll('#mobile-bottom-nav button').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const section = btn.dataset.section;
+                    if (section) this.showSection(section);
+                });
+            });
+
             // Step 6: Initialize Orders section
             console.log('[App] Step 6: Initializing Orders...');
             await Orders.init();
@@ -123,6 +131,9 @@ const App = {
         });
 
         this.currentSection = name;
+
+        // Update bottom nav active state
+        this.updateBottomNav(name);
 
         // Render section data
         await this.renderSection(name);
@@ -198,10 +209,10 @@ const App = {
 
         tbody.innerHTML = recent.map(o => `
       <tr style="cursor:pointer" onclick="Orders.loadOrder('${o.id}')">
-        <td>${Utils.formatDate(o.date)}</td>
-        <td>${Utils.escapeHtml(clientMap[o.clientId] || '—')}</td>
-        <td>${Utils.statusBadge(o.status)}</td>
-        <td class="text-end gel-value">${Utils.formatGEL(o.totalPrice || 0)}</td>
+        <td data-label="Date">${Utils.formatDate(o.date)}</td>
+        <td data-label="Client">${Utils.escapeHtml(clientMap[o.clientId] || '—')}</td>
+        <td data-label="Status">${Utils.statusBadge(o.status)}</td>
+        <td class="text-end gel-value" data-label="Total">${Utils.formatGEL(o.totalPrice || 0)}</td>
       </tr>
     `).join('');
     },
@@ -231,6 +242,13 @@ const App = {
         if (mobileBtn) {
             mobileBtn.innerHTML = isDark ? '<i class="bi bi-sun-fill"></i>' : '<i class="bi bi-moon-fill"></i>';
         }
+    },
+
+    /** Update bottom nav active state */
+    updateBottomNav(name) {
+        document.querySelectorAll('#mobile-bottom-nav button').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.section === name);
+        });
     }
 };
 

@@ -12,18 +12,18 @@ const Printers = {
             return;
         }
         tbody.innerHTML = printers.map(p => `
-      <tr>
-        <td class="fw-semibold">${Utils.escapeHtml(p.name)}</td>
-        <td class="text-end gel-value">${Utils.formatGEL(p.hourlyCost)}</td>
-        <td class="text-end">${p.powerW}W</td>
-        <td class="text-end gel-value">${Utils.formatGEL(p.maintenanceCostPerHr)}</td>
-        <td class="text-end">${p.speedGPerH} g/h</td>
-        <td><span class="badge bg-secondary">${Utils.escapeHtml(p.profile)}</span></td>
-        <td class="text-center actions-cell">
-          <button class="btn btn-sm btn-outline-primary me-1" onclick="Printers.openModal('${p.id}')" title="Edit"><i class="bi bi-pencil"></i></button>
-          <button class="btn btn-sm btn-outline-danger" onclick="Printers.remove('${p.id}')" title="Delete"><i class="bi bi-trash"></i></button>
-        </td>
-      </tr>
+  <tr>
+    <td class="fw-semibold" data-label="Name">${Utils.escapeHtml(p.name)}</td>
+    <td class="text-end gel-value" data-label="Hourly Cost">${Utils.formatGEL(p.hourlyCost)}</td>
+    <td class="text-end" data-label="Power">${p.powerW}W</td>
+    <td class="text-end gel-value" data-label="Maintenance">${Utils.formatGEL(p.maintenanceCostPerHr)}</td>
+    <td class="text-end" data-label="Speed">${p.speedGPerH} g/h</td>
+    <td data-label="Profile"><span class="badge bg-secondary">${Utils.escapeHtml(p.profile)}</span></td>
+    <td class="text-center actions-cell" data-label="">
+      <button class="btn btn-sm btn-outline-primary me-1" onclick="Printers.openModal('${p.id}')" title="Edit"><i class="bi bi-pencil"></i></button>
+      <button class="btn btn-sm btn-outline-danger" onclick="Printers.remove('${p.id}')" title="Delete"><i class="bi bi-trash"></i></button>
+    </td>
+  </tr>
     `).join('');
     },
 

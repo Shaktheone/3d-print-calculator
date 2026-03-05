@@ -173,9 +173,11 @@ body {
   overflow: hidden;
 }
 
-.stat-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.14);
+@media (hover: hover) and (pointer: fine) {
+  .stat-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.14);
+  }
 }
 
 .stat-card .card-body {

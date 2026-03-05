@@ -13,11 +13,11 @@ const Clients = {
         }
         tbody.innerHTML = clients.map(c => `
       <tr>
-        <td class="fw-semibold">${Utils.escapeHtml(c.name)}</td>
-        <td>${Utils.escapeHtml(c.email || '—')}</td>
-        <td>${Utils.escapeHtml(c.phone || '—')}</td>
-        <td>${Utils.escapeHtml(c.notes || '—')}</td>
-        <td class="text-center actions-cell">
+        <td class="fw-semibold" data-label="Name">${Utils.escapeHtml(c.name)}</td>
+        <td data-label="Email">${Utils.escapeHtml(c.email || '—')}</td>
+        <td data-label="Phone">${Utils.escapeHtml(c.phone || '—')}</td>
+        <td data-label="Notes">${Utils.escapeHtml(c.notes || '—')}</td>
+        <td class="text-center actions-cell" data-label="">
           <button class="btn btn-sm btn-outline-primary me-1" onclick="Clients.openModal('${c.id}')" title="Edit"><i class="bi bi-pencil"></i></button>
           <button class="btn btn-sm btn-outline-danger" onclick="Clients.remove('${c.id}')" title="Delete"><i class="bi bi-trash"></i></button>
         </td>

@@ -1,0 +1,530 @@
+/**
+ * mobile.css — Mobile-first responsive overhaul
+ * All rules scoped to screens < 768px (or touch devices)
+ * Loaded AFTER app.css to override desktop styles
+ */
+
+/* ========== Bottom Navigation Bar ========== */
+.mobile-bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 1050;
+    display: flex;
+    justify-content: space-around;
+    align-items: stretch;
+    height: 60px;
+    padding-bottom: env(safe-area-inset-bottom, 0);
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+    box-shadow: 0 -2px 20px rgba(0, 0, 0, 0.06);
+}
+
+[data-bs-theme="dark"] .mobile-bottom-nav {
+    background: rgba(24, 24, 36, 0.94);
+    border-top-color: rgba(255, 255, 255, 0.06);
+    box-shadow: 0 -2px 20px rgba(0, 0, 0, 0.3);
+}
+
+.mobile-bottom-nav button {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    border: none;
+    background: none;
+    color: var(--bs-secondary-color, #6c757d);
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    padding: 6px 0;
+    cursor: pointer;
+    transition: color 0.2s, transform 0.15s;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    position: relative;
+    min-width: 0;
+}
+
+.mobile-bottom-nav button i {
+    font-size: 1.25rem;
+    line-height: 1;
+    transition: transform 0.2s;
+}
+
+.mobile-bottom-nav button.active {
+    color: var(--accent, #7c3aed);
+}
+
+.mobile-bottom-nav button.active i {
+    transform: scale(1.15);
+}
+
+.mobile-bottom-nav button:active {
+    transform: scale(0.92);
+}
+
+/* ========== Mobile-only rules ========== */
+@media (max-width: 767.98px) {
+
+    /* --- Base --- */
+    html {
+        font-size: 16px;
+        -webkit-text-size-adjust: 100%;
+    }
+
+    body {
+        padding-bottom: calc(64px + env(safe-area-inset-bottom, 0));
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* --- Disable hover transforms on touch --- */
+    .stat-card:hover {
+        transform: none;
+        box-shadow: var(--card-shadow);
+    }
+
+    /* --- Main Content spacing --- */
+    .main-content .container-fluid {
+        padding-left: 12px;
+        padding-right: 12px;
+        padding-top: 16px;
+    }
+
+    /* --- Section Headers --- */
+    .section-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+        margin-bottom: 1rem;
+    }
+
+    .section-header h2 {
+        font-size: 1.3rem;
+    }
+
+    .section-header .btn,
+    .section-header .d-flex {
+        width: 100%;
+    }
+
+    .section-header .d-flex {
+        flex-direction: column;
+    }
+
+    .section-header .d-flex .btn {
+        width: 100%;
+    }
+
+    /* --- Dashboard stat cards --- */
+    .stat-card .stat-value {
+        font-size: 1.25rem;
+    }
+
+    .stat-card .stat-label {
+        font-size: 0.7rem;
+        letter-spacing: 0.5px;
+    }
+
+    .stat-card .stat-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 1.15rem;
+        border-radius: 10px;
+    }
+
+    .stat-card .card-body {
+        padding: 0.9rem;
+    }
+
+    /* --- Breakdown panel --- */
+    .breakdown-panel {
+        position: static;
+        margin-top: 1rem;
+    }
+
+    /* ========== Tables → Stacked Cards ========== */
+
+    /* Hide headers */
+    .mobile-card-table thead {
+        display: none;
+    }
+
+    .mobile-card-table,
+    .mobile-card-table tbody {
+        display: block;
+        width: 100%;
+    }
+
+    /* Each row = card */
+    .mobile-card-table tbody tr {
+        display: block;
+        padding: 14px 16px;
+        margin-bottom: 10px;
+        border-radius: 12px;
+        border: 1px solid rgba(128, 128, 128, 0.12);
+        background: var(--bs-body-bg);
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+    }
+
+    [data-bs-theme="dark"] .mobile-card-table tbody tr {
+        border-color: rgba(255, 255, 255, 0.06);
+        box-shadow: 0 1px 6px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Each cell = label+value row */
+    .mobile-card-table tbody td {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 6px 0;
+        border: none;
+        text-align: right;
+        font-size: 0.92rem;
+        min-height: 32px;
+    }
+
+    .mobile-card-table tbody td:first-child {
+        padding-top: 0;
+    }
+
+    .mobile-card-table tbody td:last-child {
+        padding-bottom: 0;
+    }
+
+    /* Data label pseudo-element */
+    .mobile-card-table tbody td::before {
+        content: attr(data-label);
+        font-weight: 600;
+        text-align: left;
+        color: var(--bs-secondary-color, #6c757d);
+        font-size: 0.78rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        flex-shrink: 0;
+        margin-right: 12px;
+    }
+
+    /* Actions cell — horizontal row of buttons */
+    .mobile-card-table tbody td.actions-cell {
+        justify-content: flex-end;
+        padding-top: 10px;
+        margin-top: 6px;
+        border-top: 1px solid rgba(128, 128, 128, 0.1);
+        gap: 10px;
+    }
+
+    .mobile-card-table tbody td.actions-cell::before {
+        display: none;
+    }
+
+    /* Larger action buttons */
+    .mobile-card-table .btn-sm {
+        min-width: 44px;
+        min-height: 44px;
+        font-size: 1rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        border-radius: 10px;
+    }
+
+    /* Status dropdown in history */
+    .mobile-card-table .dropdown .btn {
+        min-height: 40px;
+        font-size: 0.85rem;
+    }
+
+    /* ========== Forms & Inputs ========== */
+    .form-control,
+    .form-select {
+        min-height: 48px;
+        font-size: 1.05rem;
+        border-radius: 10px;
+    }
+
+    .form-control-sm,
+    .form-select-sm {
+        min-height: 44px;
+        font-size: 1rem;
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+        outline: 3px solid rgba(124, 58, 237, 0.3);
+        outline-offset: 1px;
+        box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.15);
+    }
+
+    .form-label {
+        font-size: 0.85rem;
+        font-weight: 600;
+        margin-bottom: 4px;
+    }
+
+    /* Stack form columns on mobile */
+    .row.g-2 .col-md-3,
+    .row.g-2 .col-md-4,
+    .row.g-2 .col-md-6,
+    .row.g-3 .col-md-3,
+    .row.g-3 .col-md-4,
+    .row.g-3 .col-md-6 {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+
+    /* Model rows in Orders */
+    .model-row {
+        padding: 14px;
+        border-radius: 14px;
+    }
+
+    .model-row .row.g-2>[class*="col-md-"] {
+        flex: 0 0 100%;
+        max-width: 100%;
+        margin-bottom: 4px;
+    }
+
+    /* Input group buttons */
+    .input-group .btn {
+        min-width: 44px;
+        min-height: 44px;
+    }
+
+    /* ========== Buttons ========== */
+    .btn {
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    .btn-accent {
+        min-height: 48px;
+        font-size: 1rem;
+        padding: 0.6rem 1.25rem;
+        border-radius: 12px;
+    }
+
+    /* Ripple effect */
+    .btn {
+        position: relative;
+        overflow: hidden;
+    }
+
+    .btn::after {
+        content: '';
+        display: block;
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+        pointer-events: none;
+        background-image: radial-gradient(circle, rgba(255, 255, 255, 0.35) 10%, transparent 10.01%);
+        background-repeat: no-repeat;
+        background-position: 50%;
+        transform: scale(10, 10);
+        opacity: 0;
+        transition: transform 0.4s, opacity 0.6s;
+    }
+
+    .btn:active::after {
+        transform: scale(0, 0);
+        opacity: 0.4;
+        transition: 0s;
+    }
+
+    /* Spacing between adjacent buttons */
+    .d-flex.gap-2 {
+        gap: 10px !important;
+    }
+
+    .actions-cell .btn+.btn {
+        margin-left: 0;
+    }
+
+    /* ========== Charts ========== */
+    .chart-card {
+        min-height: 200px;
+        padding: 1rem;
+    }
+
+    .chart-card canvas {
+        max-height: none;
+    }
+
+    .chart-card h6 {
+        font-size: 0.9rem;
+    }
+
+    /* Statistics header */
+    #section-statistics .section-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    #section-statistics .section-header .d-flex {
+        flex-direction: row;
+        width: 100%;
+    }
+
+    #section-statistics .section-header .form-select {
+        flex: 1;
+    }
+
+    /* KPI grid - 2 columns on mobile */
+    #stat-kpi-container>div {
+        flex: 0 0 50%;
+        max-width: 50%;
+    }
+
+    /* ========== Modals ========== */
+    .modal-dialog {
+        margin: 0;
+    }
+
+    .modal-content {
+        border-radius: 0;
+        min-height: 100dvh;
+    }
+
+    .modal-header {
+        padding: 1rem 1.25rem;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        background: var(--bs-modal-bg);
+    }
+
+    .modal-body {
+        padding: 1.25rem;
+    }
+
+    .modal-footer {
+        padding: 1rem 1.25rem;
+        position: sticky;
+        bottom: 0;
+        background: var(--bs-modal-bg);
+        box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+        gap: 10px;
+    }
+
+    .modal-footer .btn {
+        flex: 1;
+        min-height: 48px;
+        font-size: 1rem;
+    }
+
+    /* Confirm modal stays centered & small */
+    #confirmModal .modal-content {
+        min-height: auto;
+        border-radius: 16px;
+        margin: 20vh auto;
+        max-width: 90vw;
+    }
+
+    #confirmModal .modal-dialog {
+        margin: 0 auto;
+        display: flex;
+        align-items: center;
+        min-height: 100dvh;
+    }
+
+    #confirmModal .modal-footer {
+        position: static;
+        box-shadow: none;
+    }
+
+    /* ========== Toast above bottom nav ========== */
+    #toast-container {
+        bottom: calc(68px + env(safe-area-inset-bottom, 0)) !important;
+    }
+
+    /* ========== Mobile topbar adjustments ========== */
+    .mobile-topbar {
+        padding: 8px 12px;
+    }
+
+    .mobile-topbar .btn {
+        min-width: 44px;
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* ========== History filters ========== */
+    #section-history .row.g-2>[class*="col-md-"] {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+
+    /* ========== Overheads section ========== */
+    #section-overheads .row.align-items-end>[class*="col-md-"] {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+
+    /* ========== Settings section ========== */
+    #section-settings .col-lg-6 {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+
+    #section-settings .d-flex.flex-column.gap-2 .btn {
+        min-height: 48px;
+        font-size: 0.95rem;
+    }
+
+    /* Firebase config inputs */
+    #firebase-config-inputs .row>[class*="col-md-"] {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+
+    /* ========== Offcanvas on mobile ========== */
+    .offcanvas-start {
+        width: 280px;
+    }
+
+    .sidebar-nav .nav-link {
+        padding: 0.85rem 1rem;
+        font-size: 1rem;
+        min-height: 48px;
+    }
+
+    /* ========== Scrolling performance ========== */
+    .table-responsive {
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* ========== Order form improvements ========== */
+    #section-orders .col-lg-7,
+    #section-orders .col-lg-5 {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+
+    #section-orders .d-flex.gap-2 {
+        flex-direction: column;
+    }
+
+    #section-orders .d-flex.gap-2 .btn {
+        width: 100%;
+    }
+
+    /* ========== Firebase sync buttons ========== */
+    #firebase-connected-controls .d-flex {
+        flex-direction: column;
+    }
+
+    #firebase-connected-controls .btn {
+        width: 100%;
+        min-height: 44px;
+    }
+}

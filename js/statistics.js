@@ -25,6 +25,7 @@ const Statistics = {
         this._gridColor = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)';
         this._tooltipBg = isDark ? 'rgba(30,30,46,0.95)' : 'rgba(255,255,255,0.95)';
         this._tooltipText = isDark ? '#fff' : '#111';
+        this._isMobile = window.innerWidth < 768;
 
         const filteredOrders = this._filterOrders(orders);
 
@@ -99,7 +100,7 @@ const Statistics = {
     /** Common scale options for axes */
     _scaleOpts() {
         return {
-            ticks: { color: this._textColor },
+            ticks: { color: this._textColor, font: { size: this._isMobile ? 10 : 12 } },
             grid: { color: this._gridColor }
         };
     },
@@ -300,7 +301,7 @@ const Statistics = {
             options: {
                 responsive: true, maintainAspectRatio: false,
                 plugins: {
-                    legend: { labels: { color: this._textColor } },
+                    legend: { labels: { color: this._textColor, font: { size: this._isMobile ? 10 : 12 } } },
                     tooltip: { ...this._tooltipOpts(), callbacks: { label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y.toFixed(2)} ₾` } }
                 },
                 scales: {
@@ -377,7 +378,7 @@ const Statistics = {
             options: {
                 responsive: true, maintainAspectRatio: false,
                 plugins: {
-                    legend: { labels: { color: this._textColor }, position: 'top' },
+                    legend: { labels: { color: this._textColor, font: { size: this._isMobile ? 10 : 12 } }, position: this._isMobile ? 'bottom' : 'top' },
                     tooltip: this._tooltipOpts()
                 },
                 scales: {

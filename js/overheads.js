@@ -18,10 +18,10 @@ const Overheads = {
             tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted py-3">No overheads yet</td></tr>';
         } else {
             tbody.innerHTML = overheads.map(o => `<tr>
-                <td>${Utils.escapeHtml(o.label)}</td>
-                <td class="text-end gel-value">${Utils.formatGEL(o.amountPerMonth)}</td>
-                <td><span class="badge bg-info">${Utils.escapeHtml(o.scope)}</span></td>
-                <td class="text-center">
+                <td data-label="Label">${Utils.escapeHtml(o.label)}</td>
+                <td class="text-end gel-value" data-label="Amount">${Utils.formatGEL(o.amountPerMonth)}</td>
+                <td data-label="Scope"><span class="badge bg-info">${Utils.escapeHtml(o.scope)}</span></td>
+                <td class="text-center actions-cell" data-label="">
                     <button class="btn btn-sm btn-outline-primary me-1" onclick="Overheads.openModal('${o.id}')"><i class="bi bi-pencil"></i></button>
                     <button class="btn btn-sm btn-outline-danger" onclick="Overheads.remove('${o.id}', 'overheads')"><i class="bi bi-trash"></i></button>
                 </td>
@@ -37,12 +37,12 @@ const Overheads = {
             // Sort newest first
             expenses.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
             eTbody.innerHTML = expenses.map(e => `<tr>
-                <td>${Utils.formatDate(e.date)}</td>
-                <td>${Utils.escapeHtml(e.label)}</td>
-                <td><span class="badge bg-warning text-dark">${Utils.escapeHtml(e.category || '—')}</span></td>
-                <td class="text-end gel-value">${Utils.formatGEL(e.amount)}</td>
-                <td class="text-muted small">${Utils.escapeHtml(e.notes || '')}</td>
-                <td class="text-center">
+                <td data-label="Date">${Utils.formatDate(e.date)}</td>
+                <td data-label="Label">${Utils.escapeHtml(e.label)}</td>
+                <td data-label="Category"><span class="badge bg-warning text-dark">${Utils.escapeHtml(e.category || '—')}</span></td>
+                <td class="text-end gel-value" data-label="Amount">${Utils.formatGEL(e.amount)}</td>
+                <td class="text-muted small" data-label="Notes">${Utils.escapeHtml(e.notes || '')}</td>
+                <td class="text-center actions-cell" data-label="">
                     <button class="btn btn-sm btn-outline-primary me-1" onclick="Overheads.openModal('${e.id}', 'expense')"><i class="bi bi-pencil"></i></button>
                     <button class="btn btn-sm btn-outline-danger" onclick="Overheads.remove('${e.id}', 'expenses')"><i class="bi bi-trash"></i></button>
                 </td>

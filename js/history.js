@@ -55,11 +55,11 @@ const History = {
             const modelNames = (o.models || []).map(m => m.name || 'Unnamed').join(', ');
             return `
         <tr>
-          <td class="fw-semibold">${Utils.escapeHtml(o.id.slice(0, 8))}</td>
-          <td>${Utils.formatDate(o.date)}</td>
-          <td>${Utils.escapeHtml(clientMap[o.clientId] || '—')}</td>
-          <td title="${Utils.escapeHtml(modelNames)}">${modelCount} model${modelCount !== 1 ? 's' : ''}</td>
-          <td>
+          <td class="fw-semibold" data-label="Order #">${Utils.escapeHtml(o.id.slice(0, 8))}</td>
+          <td data-label="Date">${Utils.formatDate(o.date)}</td>
+          <td data-label="Client">${Utils.escapeHtml(clientMap[o.clientId] || '—')}</td>
+          <td title="${Utils.escapeHtml(modelNames)}" data-label="Models">${modelCount} model${modelCount !== 1 ? 's' : ''}</td>
+          <td data-label="Status">
             <div class="dropdown">
               <button class="btn ${History.statusBtnClass(o.status)} dropdown-toggle fw-bold" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Click to change status" style="min-width:130px; padding:6px 14px; font-size:0.9rem;">
                 ${History.statusIcon(o.status)} ${History.statusLabel(o.status)}
@@ -72,8 +72,8 @@ const History = {
               </ul>
             </div>
           </td>
-          <td class="text-end gel-value">${Utils.formatGEL(o.totalPrice || 0)}</td>
-          <td class="text-center actions-cell">
+          <td class="text-end gel-value" data-label="Total">${Utils.formatGEL(o.totalPrice || 0)}</td>
+          <td class="text-center actions-cell" data-label="">
             <button class="btn btn-sm btn-outline-dark me-1" onclick="History.exportPDF('${o.id}')" title="Download Invoice"><i class="bi bi-file-earmark-pdf"></i></button>
             <button class="btn btn-sm btn-outline-primary me-1" onclick="Orders.loadOrder('${o.id}')" title="Edit"><i class="bi bi-pencil"></i></button>
             <button class="btn btn-sm btn-outline-info me-1" onclick="History.viewDetails('${o.id}')" title="View details"><i class="bi bi-eye"></i></button>
