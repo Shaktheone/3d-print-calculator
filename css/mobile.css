@@ -244,14 +244,14 @@
     /* ========== Forms & Inputs ========== */
     .form-control,
     .form-select {
-        min-height: 48px;
+        min-height: 52px;
         font-size: 1.05rem;
         border-radius: 10px;
     }
 
     .form-control-sm,
     .form-select-sm {
-        min-height: 44px;
+        min-height: 48px;
         font-size: 1rem;
     }
 
@@ -304,8 +304,8 @@
     }
 
     .btn-accent {
-        min-height: 48px;
-        font-size: 1rem;
+        min-height: 52px;
+        font-size: 1.05rem;
         padding: 0.6rem 1.25rem;
         border-radius: 12px;
     }

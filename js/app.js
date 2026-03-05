@@ -46,6 +46,7 @@ const App = {
             // Step 4: Setup navigation
             console.log('[App] Step 4: Setting up navigation...');
             this.setupNav();
+            this.setupMobileUX();
             console.log('[App] Step 4: ✅ Nav ready');
 
             // Step 5: Dark mode toggles
@@ -114,8 +115,46 @@ const App = {
         });
     },
 
+    /** Setup Android back button and keyboard UX */
+    setupMobileUX() {
+        // Handle Android back button & pushState
+        window.addEventListener('popstate', (e) => {
+            if (e.state && e.state.section) {
+                this.showSection(e.state.section, false);
+            } else {
+                this.showSection('dashboard', false);
+            }
+        });
+
+        // Initialize history state on first load based on URL hash or default
+        const hash = window.location.hash.replace('#', '');
+        const validSections = ['dashboard', 'orders', 'printers', 'materials', 'overheads', 'clients', 'history', 'settings'];
+        const initialSection = validSections.includes(hash) ? hash : 'dashboard';
+        window.history.replaceState({ section: initialSection }, '', `#${initialSection}`);
+        if (initialSection !== 'dashboard') {
+            this.showSection(initialSection, false);
+        }
+
+        // Handle soft keyboard covering inputs on Android
+        if (window.visualViewport) {
+            window.visualViewport.addEventListener('resize', () => {
+                if (document.activeElement && ['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
+                    setTimeout(() => {
+                        document.activeElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }, 100);
+                }
+            });
+        }
+
+        // Enhance numeric inputs for mobile keyboards
+        document.querySelectorAll('input[type="number"]').forEach(input => {
+            input.setAttribute('inputmode', 'decimal');
+            input.setAttribute('enterkeyhint', 'done');
+        });
+    },
+
     /** Show a section by name */
-    async showSection(name) {
+    async showSection(name, pushHistory = true) {
         // Hide all sections
         document.querySelectorAll('.app-section').forEach(s => s.classList.add('d-none'));
 
@@ -131,6 +170,10 @@ const App = {
         });
 
         this.currentSection = name;
+
+        if (pushHistory) {
+            window.history.pushState({ section: name }, '', `#${name}`);
+        }
 
         // Update bottom nav active state
         this.updateBottomNav(name);
